@@ -118,11 +118,63 @@
     scroll-behavior: smooth;
   }
 
+  /* Override browser autofill styling */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+    -webkit-text-fill-color: currentColor !important;
+    background-color: transparent !important;
+    background-clip: text !important;
+    transition: background-color 9999s ease-out;
+    caret-color: currentColor;
+  }
+
   #icon-link {
     scroll-margin-top: 8em;
   }
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Smooth infinite scroll animations */
+@layer utilities {
+  @keyframes scroll-down {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(-25%);
+    }
+  }
+  
+  @keyframes scroll-up {
+    from {
+      transform: translateY(-25%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-scroll-down {
+    animation: scroll-down 42.5s linear infinite;
+  }
+  
+  .animate-scroll-up {
+    animation: scroll-up 42.5s linear infinite;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+    20%, 40%, 60%, 80% { transform: translateX(4px); }
+  }
+
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
   }
 }
