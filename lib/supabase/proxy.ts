@@ -36,22 +36,56 @@ export async function updateSession(request: NextRequest) {
     const { data } = await supabase.auth.getClaims()
 
     const user = data?.claims
-    const isAuthRoute = request.nextUrl.pathname.startsWith('/login') ||
-        request.nextUrl.pathname.startsWith('/auth') ||
-        request.nextUrl.pathname.startsWith('/reset-pwd')
+    const pathname = request.nextUrl.pathname
 
-    // Redirect unauthenticated users to login (except for auth routes)
-    if (!user && !isAuthRoute) {
+    // Public routes that don't require authentication
+    const isAuthRoute = pathname.startsWith('/login') ||
+        pathname.startsWith('/auth') ||
+        pathname.startsWith('/reset-pwd') ||
+        pathname.startsWith('/confirm')         // Supabase email confirmation ||
+    pathname.startsWith('/change-pwd')
+
+    // Routes accessible to authenticated non-hosts
+    const isNotAHostRoute = pathname === '/not-a-host'
+
+    // Redirect unauthenticated users to login (except for auth routes and not-a-host)
+    if (!user && !isAuthRoute && !isNotAHostRoute) {
         const url = request.nextUrl.clone()
         url.pathname = '/login'
         return NextResponse.redirect(url)
     }
 
-    // Redirect authenticated users away from login page to dashboard
-    if (user && request.nextUrl.pathname === '/login') {
-        const url = request.nextUrl.clone()
-        url.pathname = '/dashboard'
-        return NextResponse.redirect(url)
+    // For authenticated users, check if they're a host
+    if (user && !isAuthRoute && !isNotAHostRoute) {
+        // Check if user exists in pkt_host table
+        const { data: host, error } = await supabase
+            .from('pkt_host')
+            .select('id')
+            .eq('driver_id', user.sub)
+            .single()
+
+        // If not a host, redirect to not-a-host page
+        if (error || !host) {
+            const url = request.nextUrl.clone()
+            url.pathname = '/not-a-host'
+            return NextResponse.redirect(url)
+        }
+    }
+
+    // Redirect authenticated hosts away from login page to dashboard
+    if (user && pathname === '/login') {
+        // Check if they're a host first
+        const { data: host } = await supabase
+            .from('pkt_host')
+            .select('id')
+            .eq('driver_id', user.sub)
+            .single()
+
+        if (host) {
+            const url = request.nextUrl.clone()
+            url.pathname = '/'
+            return NextResponse.redirect(url)
+        }
     }
 
     // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're

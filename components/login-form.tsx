@@ -40,7 +40,7 @@ export function LoginForm({
 
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
-  const { user } = useUser();
+  const { user, loading: authLoading } = useUser();
   const [email, setEmail] = useState<string>("")
   const [password, setPassword] = useState<string>("")
   const [showPassword, setShowPassword] = useState<boolean>(false)
@@ -50,7 +50,22 @@ export function LoginForm({
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
   const [shaking, setShaking] = useState<boolean>(false);
+  const [checkingAuth, setCheckingAuth] = useState<boolean>(true);
   const disabled = (email.length === 0 || emailError) || (password.length === 0) || loading;
+
+  // Check if returning from OAuth callback
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        // User is authenticated, wait for redirect (handled by UserProvider)
+        return;
+      }
+      // No session, show the login form
+      setCheckingAuth(false);
+    };
+    checkAuthStatus();
+  }, [supabase.auth]);
 
   // Redirect to dashboard if user is already logged in
   // Middleware handles protection, but this provides immediate UX feedback
@@ -94,14 +109,25 @@ export function LoginForm({
       setPassword("");
       setShowPassword(false);
     }
-    else {
-      toast.success("Login Completato. Verrai reindirizzato alla dashboard.");
-      setLoading(false);
-      setError(false);
-      router.push("/");
-    }
+    // Success case is handled by onAuthStateChange in UserProvider
+    // which will check host status and redirect accordingly
   }
 
+
+  // Show loading state while checking auth (e.g., after OAuth redirect)
+  if (checkingAuth || authLoading || user) {
+    return (
+      <div className={cn("flex flex-col gap-6 items-center justify-center", className)} {...props}>
+        <Card className="w-full">
+          <Logo />
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Spinner className="w-8 h-8" />
+            <p className="mt-4 text-muted-foreground">Verifica in corso...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -138,7 +164,7 @@ export function LoginForm({
                     placeholder="m@example.com"
                     required
                     aria-invalid={showEmailError}
-                    className="rounded-none"
+                    className="rounded-none focus:placeholder-muted-foreground/50"
                   />
                 </InputGroup>
                 {showEmailError && <FieldError errors={[{ message: "Email non valida" }]} />}
@@ -157,7 +183,7 @@ export function LoginForm({
                     onFocus={() => setError(false)}
                     placeholder="la tua password"
                     required
-                    className="rounded-none"
+                    className="rounded-none focus:placeholder-muted-foreground/50"
                   />
                   <InputGroupAddon align="inline-end">
                     <Button type="button" variant="ghost" size="icon" onClick={() => setShowPassword(!showPassword)} className="hover:text-muted-foreground hover:bg-transparent hover:cursor-pointer">
@@ -179,9 +205,11 @@ export function LoginForm({
           </form>
         </CardContent>
       </Card>
-      <FieldDescription className="px-6 text-center">
-        Cliccando su Continua, accetti i nostri <Link href="https://parkito.app/terminiecondizioni">Termini e Condizioni</Link>.
+      <FieldDescription className="px-6 text-center dark:text-muted text-muted-foreground">
+        Cliccando su Continua, accetti i nostri <Link target="_blank" href="https://parkito.app/terminiecondizioni">Termini e Condizioni</Link>.
       </FieldDescription>
     </div>
   )
 }
+
+

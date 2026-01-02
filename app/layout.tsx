@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import { UserProvider } from "@/providers/user-provider";
 import { Toaster } from "sonner";
 import { createClient } from "@/lib/supabase/server";
+import type { DriverData, HostData } from "@/types";
 
 export const metadata: Metadata = {
   title: "Parkito Host Dashboard",
@@ -25,9 +26,24 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Fetch user server-side and pass to UserProvider
+  // Fetch user, driver, and host data server-side
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+
+  // Fetch driver and host data if user exists
+  let initialDriver: DriverData | null = null;
+  let initialHost: HostData | null = null;
+
+  if (user) {
+    // Fetch driver and host data in parallel
+    const [driverResult, hostResult] = await Promise.all([
+      supabase.from("pkt_driver").select("*").eq("id", user.id).single(),
+      supabase.from("pkt_host").select("*").eq("driver_id", user.id).single()
+    ]);
+
+    initialDriver = driverResult.data;
+    initialHost = hostResult.data;
+  }
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -46,7 +62,7 @@ export default async function RootLayout({
           defaultTheme="system"
           enableSystem
         >
-          <UserProvider initialUser={user}>
+          <UserProvider initialUser={user} initialDriver={initialDriver} initialHost={initialHost}>
             <main id="main-content">
               {children}
             </main>

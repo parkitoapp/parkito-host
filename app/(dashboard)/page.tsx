@@ -4,18 +4,22 @@ import { Button } from "@/components/ui/button";
 import { useUser } from "@/providers/user-provider";
 
 export default function Home() {
-  const { user, signOut, loading } = useUser();
+  const { user, driver, signOut, loading } = useUser();
 
   if (!user) {
     return <div>Caricamento...</div>;
   }
-  console.log(user)
-
-  console.log(user.identities?.[0]?.identity_data?.surname)
-
 
   return (
-    <div>
+    <div className="p-4 flex flex-col gap-4">
+      <div>
+        <p><strong>Ciao, {user.email}!</strong></p>
+        {driver && (
+          <p className="text-muted-foreground text-sm">
+            {driver.name || "driver name"} {driver.surname || "driver surname"} {driver.phone || "driver phone"} {driver.email || "driver email"}
+          </p>
+        )}
+      </div>
       <Button onClick={signOut} disabled={loading}>
         {loading ? "Uscita..." : "Esci"}
       </Button>

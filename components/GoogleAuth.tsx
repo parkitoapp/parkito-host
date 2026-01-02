@@ -1,8 +1,30 @@
+"use client"
+
 import { Button } from "./ui/button"
+import { useUser } from "@/providers/user-provider"
+import { toast } from "sonner"
+import { Spinner } from "./ui/spinner"
 
 export default function GoogleAuth() {
+    const { signInWithGoogle, loading } = useUser()
+
+    const handleGoogleLogin = async () => {
+        try {
+            await signInWithGoogle()
+            // No toast here - user will be redirected to Google
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "Errore durante il login")
+        }
+    }
+
     return (
-        <Button variant="outline" type="button" className="bg-white text-black hover:bg-black/10 hover:text-black">
+        <Button
+            variant="outline"
+            type="button"
+            className="bg-white text-black dark:text-white hover:bg-black/10 hover:text-black"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+        >
             <svg
                 width={24}
                 height={24}
@@ -32,7 +54,7 @@ export default function GoogleAuth() {
                     </g>
                 </g>
             </svg>
-            Accedi con Google
+            {loading ? <Spinner /> : "Accedi con Google"}
         </Button>
     )
 }
