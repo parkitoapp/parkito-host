@@ -26,6 +26,7 @@ import { FormEvent, useState, useEffect } from "react"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { Spinner } from "@/components/ui/spinner"
+import { checkEmailForReset } from "@/lib/actions/reset-pwd"
 
 const COOLDOWN_SECONDS = 90
 const COOLDOWN_STORAGE_KEY = "reset-pwd-cooldown-expiry"
@@ -82,30 +83,16 @@ export function ResetPwdForm() {
         setError(false)
 
         try {
-            // First, check if email belongs to a host
-            const { data: driver } = await supabase
-                .from("pkt_driver")
-                .select("id")
-                .eq("email", email.toLowerCase())
-                .single() as { data: { id: string } | null }
+            // Check if email belongs to a driver and if they're a host (server-side to bypass RLS)
+            const result = await checkEmailForReset(email)
+            console.log("[ResetPwdForm] Server action result:", result)
 
-            if (!driver) {
-                toast.error("Email non trovata. Verifica di aver inserito l'email corretta.")
-                setError(true)
-                setShaking(true)
-                setLoading(false)
-                return
-            }
-
-            // Check if driver is a host
-            const { data: host } = await supabase
-                .from("pkt_host")
-                .select("id")
-                .eq("driver_id", driver.id)
-                .single() as { data: { id: string } | null }
-
-            if (!host) {
-                toast.error("Questa email non è associata a un account host. Usa l'app mobile per gestire il tuo account.")
+            if (!result.success) {
+                if (result.isDriver && !result.isHost) {
+                    toast.error("Questa email non è associata a un account host. Usa l'app mobile per gestire il tuo account.")
+                } else {
+                    toast.error(result.error || "Email non trovata. Verifica di aver inserito l'email corretta.")
+                }
                 setError(true)
                 setShaking(true)
                 setLoading(false)
