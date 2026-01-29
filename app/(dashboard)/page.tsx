@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useUser } from "@/providers/user-provider";
 
 export default function Home() {
+
   const { user, driver, signOut, loading } = useUser();
 
   if (!user) {
@@ -20,7 +21,7 @@ export default function Home() {
           </p>
         )}
       </div>
-      <Button onClick={signOut} disabled={loading}>
+      <Button onClick={() => signOut()} disabled={loading}>
         {loading ? "Uscita..." : "Esci"}
       </Button>
     </div>
