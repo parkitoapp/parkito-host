@@ -2,7 +2,7 @@
 
 import { useUser } from "@/providers/user-provider"
 import { Spinner } from "@/components/ui/spinner"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useEffect } from "react"
 import {
   SidebarInset,
@@ -11,6 +11,9 @@ import {
 } from "@/components/ui/sidebar"
 import AppSidebar from "@/components/app-sidebar"
 import { Separator } from "@/components/ui/separator"
+import { useState } from "react"
+import { fetchParkingByHostId } from "@/lib/getUser.client"
+import { Parking } from "@/types"
 
 export default function DashboardLayout({
   children,
@@ -19,26 +22,60 @@ export default function DashboardLayout({
 }) {
   const { user, driver, host, loading } = useUser()
   const router = useRouter()
+  const pathname = usePathname()
+  const [parkings, setParkings] = useState<Parking[]>([])
 
   // Client-side protection as backup to server-side proxy
   useEffect(() => {
-    if (!loading) {
-      if (!user) {
+    // If we're not loading and we have no user, we might be in a logout flow
+    // UserProvider will handle the redirect via window.location.href for a hard reset
+    // but we keep this as a secondary check for router-based navigation if needed.
+    if (!loading && !user && pathname !== "/login") {
+      // Small delay to allow UserProvider's hard redirect to fire first
+      const timer = setTimeout(() => {
         router.push("/login")
-      } else if (!host) {
-        router.push("/not-a-host")
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+
+    if (!loading && user && !host && pathname !== "/not-a-host") {
+      router.push("/not-a-host")
+    }
+  }, [user, host, loading, router, pathname])
+
+  // Fetch parkings when host is available
+  useEffect(() => {
+    const getParkings = async () => {
+      if (host?.id) {
+        const data = await fetchParkingByHostId(host.id)
+        setParkings(data as Parking[])
       }
     }
-  }, [user, host, loading, router])
+    getParkings()
+  }, [host])
 
   // Show loading state while checking auth
-  // We also check for !driver here to ensure AppSidebar has it
-  if (loading || !user || !host || !driver) {
+  // If loading is true OR if we have no user (and not currently on login page)
+  if (loading || (!user && pathname !== "/login")) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Spinner className="w-8 h-8" />
-          <p className="text-muted-foreground">Caricamento...</p>
+          <p className="text-muted-foreground">
+            {!user ? "Uscita in corso..." : "Caricamento..."}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // If we have user/host but are still waiting for driver/host data
+  if (!user || !host || !driver) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Spinner className="w-8 h-8" />
+          <p className="text-muted-foreground">Caricamento dati...</p>
         </div>
       </div>
     )
@@ -46,7 +83,7 @@ export default function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <AppSidebar user={driver} parkings={[]} />
+      <AppSidebar user={driver} parkings={parkings} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">

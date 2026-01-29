@@ -1,27 +1,29 @@
-"use client"
+"use client";
 
-import { getSupabaseBrowserClient } from "@/lib/supabase/client"
-import type { DriverData, HostData } from "@/types"
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import type { DriverData, HostData } from "@/types";
 
 /**
  * Client-side function to get driver data for a given user ID
  * Use this in Client Components
  */
-export async function getDriverData(userId: string): Promise<DriverData | null> {
-    const supabase = getSupabaseBrowserClient()
+export async function getDriverData(
+  userId: string
+): Promise<DriverData | null> {
+  const supabase = getSupabaseBrowserClient();
 
-    const { data: driver, error } = await supabase
-        .from("pkt_driver")
-        .select("*")
-        .eq("id", userId)
-        .single()
+  const { data: driver, error } = await supabase
+    .from("pkt_driver")
+    .select("*")
+    .eq("id", userId)
+    .single();
 
-    if (error) {
-        console.error("Error fetching driver data:", error.message)
-        return null
-    }
+  if (error) {
+    console.error("Error fetching driver data:", error.message);
+    return null;
+  }
 
-    return driver
+  return driver;
 }
 
 /**
@@ -29,22 +31,40 @@ export async function getDriverData(userId: string): Promise<DriverData | null> 
  * Returns host data if the user's driver_id exists in pkt_host table
  */
 export async function getHostData(userId: string): Promise<HostData | null> {
-    const supabase = getSupabaseBrowserClient()
+  const supabase = getSupabaseBrowserClient();
 
-    const { data: host, error } = await supabase
-        .from("pkt_host")
-        .select("*")
-        .eq("driver_id", userId)
-        .single()
+  const { data: host, error } = await supabase
+    .from("pkt_host")
+    .select("*")
+    .eq("driver_id", userId)
+    .single();
 
-    if (error) {
-        // Not an error if host doesn't exist - just means user is not a host
-        if (error.code !== "PGRST116") {
-            console.error("Error fetching host data:", error.message)
-        }
-        return null
+  if (error) {
+    // Not an error if host doesn't exist - just means user is not a host
+    if (error.code !== "PGRST116") {
+      console.error("Error fetching host data:", error.message);
     }
+    return null;
+  }
 
-    return host
+  return host;
 }
 
+/**
+ * Client-side function to fetch all parkings for a given host ID
+ */
+export async function fetchParkingByHostId(hostId: string) {
+  const supabase = getSupabaseBrowserClient();
+
+  const { data: parkings, error } = await supabase
+    .from("pkt_parking")
+    .select("*")
+    .eq("host_id", hostId);
+
+  if (error) {
+    console.error("Error fetching parkings:", error.message);
+    return [];
+  }
+
+  return parkings || [];
+}

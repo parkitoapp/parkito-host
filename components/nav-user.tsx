@@ -26,6 +26,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { DriverData } from "@/types"
+import ThemeSwitch from "./ThemeSwitch"
+import Link from "next/link"
 
 export function NavUser({
   user,
@@ -66,17 +68,19 @@ export function NavUser({
             align="end"
             sideOffset={4}
           >
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar_url || ""} alt={displayName} />
-                  <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{displayName}</span>
-                  <span className="truncate text-xs">{user.email || ""}</span>
+            <DropdownMenuLabel className="p-0 font-normal hover:bg-sidebar-accent rounded-sm">
+              <Link href="/account">
+                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                  <Avatar className="h-8 w-8 rounded-lg">
+                    <AvatarImage src={user.avatar_url || ""} alt={displayName} />
+                    <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">{displayName}</span>
+                    <span className="truncate text-xs">{user.email || ""}</span>
+                  </div>
                 </div>
-              </div>
+              </Link>
             </DropdownMenuLabel>
             {/* <DropdownMenuSeparator />
             <DropdownMenuGroup>
@@ -100,6 +104,10 @@ export function NavUser({
                 Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup> */}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="cursor-pointer items-center flex justify-center">
+              <ThemeSwitch />
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer">
               <LogOut className="mr-2 h-4 w-4" />

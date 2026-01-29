@@ -88,7 +88,7 @@ export async function updateSession(request: NextRequest) {
 
     if (host) {
       const url = request.nextUrl.clone();
-      url.pathname = "/";
+      url.pathname = "/calendar"; //to be changed as soon as analitycs are available
       return NextResponse.redirect(url);
     }
   }

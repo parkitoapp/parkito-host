@@ -1,7 +1,7 @@
-import React from 'react'
+import WorkInProgress from '@/components/WorkInProgress'
 
 export default function BookingsPage() {
-    return (
-        <div>BookingsPage</div>
-    )
+  return (
+    <WorkInProgress name='La pagina Prenotazioni' />
+  )
 }

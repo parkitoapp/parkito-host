@@ -91,34 +91,40 @@ export function UserProvider({ children, initialUser, initialDriver, initialHost
 
   // Sign out and redirect to login
   const signOut = useCallback(async () => {
-    if (loading) return
+    // Note: We don't check `loading` here to allow logout even if something is stuck
     setLoading(true)
 
     try {
       // 1. Call server-side logout to clear cookies (with a short timeout)
       const controller = new AbortController()
       const id = setTimeout(() => controller.abort(), 2000)
-      await fetch('/auth/logout', {
-        method: 'POST',
-        signal: controller.signal
-      }).catch(e => console.error('Server logout failed/timed out:', e))
+      try {
+        await fetch('/auth/logout', {
+          method: 'POST',
+          signal: controller.signal
+        })
+      } catch (e) {
+        console.warn('Server logout failed or timed out:', e)
+      }
       clearTimeout(id)
     } catch (e) {
       console.error('Logout fetch error:', e)
     }
 
     // 2. Call client-side signOut
-    await supabase.auth.signOut()
+    // This will trigger the "SIGNED_OUT" event in onAuthStateChange
+    const { error } = await supabase.auth.signOut()
 
-    // 3. Clear local state
-    setUser(null)
-    setDriver(null)
-    setHost(null)
-
-    // 4. Force a full page reload to the login page
-    // replace() is better than href = ... as it doesn't add to history
-    window.location.replace("/login")
-  }, [supabase.auth, loading])
+    if (error) {
+      console.error('Supabase signOut error:', error)
+      // Fallback: manually clear state and redirect if signOut failed
+      setUser(null)
+      setDriver(null)
+      setHost(null)
+      setLoading(false)
+      window.location.replace("/login")
+    }
+  }, [supabase.auth])
 
   // Refresh user data from Supabase
   const refreshUser = useCallback(async () => {
@@ -180,9 +186,10 @@ export function UserProvider({ children, initialUser, initialDriver, initialHost
             setDriver(null)
             setHost(null)
             setLoading(false)
-            // Only redirect to login if not already on not-a-host or login page
-            if (pathname !== "/not-a-host" && pathname !== "/login") {
-              window.location.replace("/login")
+            console.log("[Auth Event] Redirecting to login...")
+            // Hard redirect to clear all state/memory
+            if (pathname !== "/login" && pathname !== "/not-a-host") {
+              window.location.href = "/login"
             }
             break
 
