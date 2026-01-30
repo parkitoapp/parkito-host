@@ -29,10 +29,30 @@ import { DriverData } from "@/types"
 import ThemeSwitch from "./ThemeSwitch"
 import Link from "next/link"
 
+const navUserTriggerContent = (user: DriverData) => {
+  const displayName = [user.name, user.surname].filter(Boolean).join(" ") || "Utente Parkito"
+  const initials = [user.name, user.surname].filter(Boolean).map(n => n?.[0]).join("") || "PK"
+  return (
+    <>
+      <Avatar className="h-8 w-8 rounded-lg">
+        <AvatarImage src={user.avatar_url || ""} alt={displayName} />
+        <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
+      </Avatar>
+      <div className="grid flex-1 text-left text-sm leading-tight">
+        <span className="truncate font-medium">{displayName}</span>
+        <span className="truncate text-xs">{user.email || ""}</span>
+      </div>
+      <ChevronsUpDown className="ml-auto size-4" />
+    </>
+  )
+}
+
 export function NavUser({
   user,
+  interactive = true,
 }: {
   user: DriverData
+  interactive?: boolean
 }) {
   const { isMobile } = useSidebar()
   const { signOut } = useUser()
@@ -42,25 +62,29 @@ export function NavUser({
   const displayName = [user.name, user.surname].filter(Boolean).join(" ") || "Utente Parkito"
   const initials = [user.name, user.surname].filter(Boolean).map(n => n?.[0]).join("") || "PK"
 
+  const triggerButton = (
+    <SidebarMenuButton
+      size="lg"
+      className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+    >
+      {navUserTriggerContent(user)}
+    </SidebarMenuButton>
+  )
+
+  if (!interactive) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>{triggerButton}</SidebarMenuItem>
+      </SidebarMenu>
+    )
+  }
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-              <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar_url || ""} alt={displayName} />
-                <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
-              </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{displayName}</span>
-                <span className="truncate text-xs">{user.email || ""}</span>
-              </div>
-              <ChevronsUpDown className="ml-auto size-4" />
-            </SidebarMenuButton>
+            {triggerButton}
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
@@ -71,7 +95,7 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal hover:bg-sidebar-accent rounded-sm">
               <Link href="/account">
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                  <Avatar className="h-8 w-8 rounded-lg">
+                  <Avatar className="h-10 w-10 rounded-lg">
                     <AvatarImage src={user.avatar_url || ""} alt={displayName} />
                     <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
                   </Avatar>
@@ -82,28 +106,6 @@ export function NavUser({
                 </div>
               </Link>
             </DropdownMenuLabel>
-            {/* <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Sparkles />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
-              </DropdownMenuItem>
-            </DropdownMenuGroup> */}
             <DropdownMenuSeparator />
             <DropdownMenuItem className="cursor-pointer items-center flex justify-center">
               <ThemeSwitch />

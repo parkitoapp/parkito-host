@@ -5,9 +5,12 @@ import "./globals.css";
 import Link from "next/link";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { UserProvider } from "@/providers/user-provider";
+import { QueryProvider } from "@/providers/query-provider";
 import { Toaster } from "sonner";
 import { createClient } from "@/lib/supabase/server";
 import type { DriverData, HostData } from "@/types";
+import type { Parking } from "@/types";
+import { getParkingsByHostId } from "@/lib/parkings.server";
 
 export const metadata: Metadata = {
   title: "Parkito Host Dashboard",
@@ -34,6 +37,8 @@ export default async function RootLayout({
   let initialDriver: DriverData | null = null;
   let initialHost: HostData | null = null;
 
+  let initialParkings: Parking[] = [];
+
   if (user) {
     // Fetch driver and host data in parallel
     const [driverResult, hostResult] = await Promise.all([
@@ -43,6 +48,10 @@ export default async function RootLayout({
 
     initialDriver = driverResult.data;
     initialHost = hostResult.data;
+
+    if (initialHost?.id) {
+      initialParkings = await getParkingsByHostId(initialHost.id);
+    }
   }
 
   return (
@@ -62,12 +71,14 @@ export default async function RootLayout({
           defaultTheme="system"
           enableSystem
         >
-          <UserProvider initialUser={user} initialDriver={initialDriver} initialHost={initialHost}>
-            <main id="main-content">
-              {children}
-            </main>
-            <Toaster richColors position="top-center" />
-          </UserProvider>
+          <QueryProvider>
+            <UserProvider initialUser={user} initialDriver={initialDriver} initialHost={initialHost} initialParkings={initialParkings}>
+              <main id="main-content">
+                {children}
+              </main>
+              <Toaster richColors position="top-center" expand={false} />
+            </UserProvider>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

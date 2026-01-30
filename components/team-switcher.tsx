@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { MapPin, ChevronsUpDown } from "lucide-react"
+import { MapPin, ChevronsUpDown, RefreshCw } from "lucide-react"
 
 import {
   DropdownMenu,
@@ -20,10 +20,29 @@ import {
 import { Parking } from "@/types"
 import Image from "next/image"
 
+const teamSwitcherButtonContent = (activeTeam: Parking) => (
+  <>
+    <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-transparent text-transparent-foreground group-data-[collapsible=icon]:mx-auto">
+      <Image src={"/logo-cropped.webp"} alt="Logo" width={24} height={24} className="rounded-md" />
+    </div>
+    <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
+      <span className="truncate font-medium">{activeTeam.address}</span>
+      <span className="truncate text-xs">{activeTeam.city}</span>
+    </div>
+    <ChevronsUpDown className="ml-auto group-data-[collapsible=icon]:hidden" />
+  </>
+)
+
 export function TeamSwitcher({
   teams,
+  interactive = true,
+  onRefresh,
+  isRefreshing = false,
 }: {
   teams: Parking[]
+  interactive?: boolean
+  onRefresh?: () => void
+  isRefreshing?: boolean
 }) {
   const { isMobile } = useSidebar()
   const [activeTeam, setActiveTeam] = React.useState<Parking | null>(teams[0] || null)
@@ -43,11 +62,28 @@ export function TeamSwitcher({
             <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
               <MapPin className="size-4" />
             </div>
-            <div className="grid flex-1 text-left text-sm leading-tight">
+            <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
               <span className="truncate font-medium">Nessun parcheggio</span>
             </div>
           </SidebarMenuButton>
         </SidebarMenuItem>
+      </SidebarMenu>
+    )
+  }
+
+  const triggerButton = (
+    <SidebarMenuButton
+      size="lg"
+      className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+    >
+      {teamSwitcherButtonContent(activeTeam)}
+    </SidebarMenuButton>
+  )
+
+  if (!interactive) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>{triggerButton}</SidebarMenuItem>
       </SidebarMenu>
     )
   }
@@ -57,19 +93,7 @@ export function TeamSwitcher({
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-
-              <Image src={"/logo-cropped.webp"} alt="Logo" width={24} height={24} />
-
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{activeTeam.address}</span>
-                <span className="truncate text-xs">{activeTeam.city}</span>
-              </div>
-              <ChevronsUpDown className="ml-auto" />
-            </SidebarMenuButton>
+            {triggerButton}
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
@@ -81,6 +105,17 @@ export function TeamSwitcher({
               I miei parcheggi
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            {onRefresh && (
+              <DropdownMenuItem
+                onClick={() => onRefresh()}
+                disabled={isRefreshing}
+                className="gap-2 p-2 text-muted-foreground"
+              >
+                <RefreshCw className={`size-4 shrink-0 ${isRefreshing ? "animate-spin" : ""}`} />
+                <span>{isRefreshing ? "Aggiornamento..." : "Aggiorna lista"}</span>
+              </DropdownMenuItem>
+            )}
+            {onRefresh && <DropdownMenuSeparator />}
             {teams.map((team, index) => (
               <DropdownMenuItem
                 key={index}

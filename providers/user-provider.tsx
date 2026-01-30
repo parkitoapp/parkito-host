@@ -4,13 +4,16 @@ import { createContext, useContext, useEffect, useState, ReactNode, useCallback 
 import { User } from "@supabase/supabase-js"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 import { useRouter, usePathname } from "next/navigation"
+import { useQueryClient } from "@tanstack/react-query"
 import { getDriverData, getHostData } from "@/lib/getUser.client"
 import type { DriverData, HostData } from "@/types"
+import type { Parking } from "@/types"
 
 interface UserContextType {
   user: User | null
   driver: DriverData | null
   host: HostData | null
+  initialParkings: Parking[]
   loading: boolean
   isHost: boolean
   refreshUser: () => Promise<void>
@@ -27,9 +30,10 @@ interface UserProviderProps {
   initialUser: User | null
   initialDriver: DriverData | null
   initialHost: HostData | null
+  initialParkings?: Parking[]
 }
 
-export function UserProvider({ children, initialUser, initialDriver, initialHost }: UserProviderProps) {
+export function UserProvider({ children, initialUser, initialDriver, initialHost, initialParkings = [] }: UserProviderProps) {
   const [user, setUser] = useState<User | null>(initialUser)
   const [driver, setDriver] = useState<DriverData | null>(initialDriver)
   const [host, setHost] = useState<HostData | null>(initialHost)
@@ -37,11 +41,12 @@ export function UserProvider({ children, initialUser, initialDriver, initialHost
   const supabase = getSupabaseBrowserClient()
   const router = useRouter()
   const pathname = usePathname()
+  const queryClient = useQueryClient()
 
   // Derived state: is the user a host?
   const isHost = host !== null
 
-  // Fetch driver and host data for a user
+  // Fetch driver and host for a user. Parkings are loaded via TanStack Query (useParkings).
   const fetchUserData = useCallback(async (userId: string) => {
     const [driverData, hostData] = await Promise.all([
       getDriverData(userId),
@@ -91,7 +96,6 @@ export function UserProvider({ children, initialUser, initialDriver, initialHost
 
   // Sign out and redirect to login
   const signOut = useCallback(async () => {
-    // Note: We don't check `loading` here to allow logout even if something is stuck
     setLoading(true)
 
     try {
@@ -112,19 +116,17 @@ export function UserProvider({ children, initialUser, initialDriver, initialHost
     }
 
     // 2. Call client-side signOut
-    // This will trigger the "SIGNED_OUT" event in onAuthStateChange
-    const { error } = await supabase.auth.signOut()
+    await supabase.auth.signOut()
 
-    if (error) {
-      console.error('Supabase signOut error:', error)
-      // Fallback: manually clear state and redirect if signOut failed
-      setUser(null)
-      setDriver(null)
-      setHost(null)
-      setLoading(false)
-      window.location.replace("/login")
-    }
-  }, [supabase.auth])
+    // 3. Clear state and redirect immediately — don't wait for SIGNED_OUT event
+    // (the event may not fire reliably when we trigger signOut ourselves)
+    setUser(null)
+    setDriver(null)
+    setHost(null)
+    setLoading(false)
+    queryClient.removeQueries({ queryKey: ["parkings"] })
+    window.location.href = "/login"
+  }, [supabase.auth, queryClient])
 
   // Refresh user data from Supabase
   const refreshUser = useCallback(async () => {
@@ -136,6 +138,7 @@ export function UserProvider({ children, initialUser, initialDriver, initialHost
       setDriver(null)
       setHost(null)
       setLoading(false)
+      queryClient.removeQueries({ queryKey: ["parkings"] })
       window.location.href = "/login"
       return
     }
@@ -148,7 +151,7 @@ export function UserProvider({ children, initialUser, initialDriver, initialHost
     if (!hostData && pathname !== "/not-a-host" && pathname !== "/login") {
       window.location.href = "/not-a-host"
     }
-  }, [supabase.auth, fetchUserData, pathname])
+  }, [supabase.auth, fetchUserData, pathname, queryClient])
 
   // Listen for auth state changes
   useEffect(() => {
@@ -157,6 +160,14 @@ export function UserProvider({ children, initialUser, initialDriver, initialHost
         console.log("[Auth Event]:", event)
 
         switch (event) {
+          case "INITIAL_SESSION":
+            // On page load/refresh: restore user and fetch driver/host from session
+            if (session?.user) {
+              setUser(session.user)
+              await fetchUserData(session.user.id)
+            }
+            break
+
           case "SIGNED_IN":
             setUser(session?.user ?? null)
             // Fetch driver and host data on sign in
@@ -172,7 +183,8 @@ export function UserProvider({ children, initialUser, initialDriver, initialHost
               }
 
               // User is a host, redirect to dashboard
-              router.push("/")
+              // TODO: Temporary redirect to /calendar until home page features are implemented
+              router.push("/calendar")
             }
             break
 
@@ -186,6 +198,7 @@ export function UserProvider({ children, initialUser, initialDriver, initialHost
             setDriver(null)
             setHost(null)
             setLoading(false)
+            queryClient.removeQueries({ queryKey: ["parkings"] })
             console.log("[Auth Event] Redirecting to login...")
             // Hard redirect to clear all state/memory
             if (pathname !== "/login" && pathname !== "/not-a-host") {
@@ -212,6 +225,7 @@ export function UserProvider({ children, initialUser, initialDriver, initialHost
               setUser(null)
               setDriver(null)
               setHost(null)
+              queryClient.removeQueries({ queryKey: ["parkings"] })
             }
         }
       }
@@ -220,7 +234,7 @@ export function UserProvider({ children, initialUser, initialDriver, initialHost
     return () => {
       subscription.unsubscribe()
     }
-  }, [supabase.auth, router, fetchUserData, pathname])
+  }, [supabase.auth, router, fetchUserData, pathname, queryClient])
 
   // Periodically check if session is still valid (every 5 minutes)
   useEffect(() => {
@@ -255,7 +269,7 @@ export function UserProvider({ children, initialUser, initialDriver, initialHost
   }, [user, host, initialHost, pathname])
 
   return (
-    <UserContext.Provider value={{ user, driver, host, loading, isHost, refreshUser, refreshDriver, signOut, signInWithGoogle, signInWithApple }}>
+    <UserContext.Provider value={{ user, driver, host, initialParkings, loading, isHost, refreshUser, refreshDriver, signOut, signInWithGoogle, signInWithApple }}>
       {children}
     </UserContext.Provider>
   )

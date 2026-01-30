@@ -1,6 +1,7 @@
 "use client"
 
 import { useUser } from "@/providers/user-provider"
+import { useParkings } from "@/hooks/use-parkings"
 import { Spinner } from "@/components/ui/spinner"
 import { useRouter, usePathname } from "next/navigation"
 import { useEffect } from "react"
@@ -11,9 +12,7 @@ import {
 } from "@/components/ui/sidebar"
 import AppSidebar from "@/components/app-sidebar"
 import { Separator } from "@/components/ui/separator"
-import { useState } from "react"
-import { fetchParkingByHostId } from "@/lib/getUser.client"
-import { Parking } from "@/types"
+import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbLink, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 
 export default function DashboardLayout({
   children,
@@ -21,9 +20,9 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const { user, driver, host, loading } = useUser()
+  const { parkings, refetch, isFetching } = useParkings(host?.id)
   const router = useRouter()
   const pathname = usePathname()
-  const [parkings, setParkings] = useState<Parking[]>([])
 
   // Client-side protection as backup to server-side proxy
   useEffect(() => {
@@ -43,17 +42,6 @@ export default function DashboardLayout({
     }
   }, [user, host, loading, router, pathname])
 
-  // Fetch parkings when host is available
-  useEffect(() => {
-    const getParkings = async () => {
-      if (host?.id) {
-        const data = await fetchParkingByHostId(host.id)
-        setParkings(data as Parking[])
-      }
-    }
-    getParkings()
-  }, [host])
-
   // Show loading state while checking auth
   // If loading is true OR if we have no user (and not currently on login page)
   if (loading || (!user && pathname !== "/login")) {
@@ -67,6 +55,18 @@ export default function DashboardLayout({
         </div>
       </div>
     )
+  }
+
+  const getBreadcrumbItems = () => {
+    const pathSegments = pathname.split("/").filter((segment) => segment !== "")
+    return pathSegments.map((segment, index) => {
+      const href = "/" + pathSegments.slice(0, index + 1).join("/")
+      return (
+        <BreadcrumbItem key={href}>
+          <BreadcrumbLink href={href}>{segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase()}</BreadcrumbLink>
+        </BreadcrumbItem>
+      )
+    })
   }
 
   // If we have user/host but are still waiting for driver/host data
@@ -83,18 +83,31 @@ export default function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <AppSidebar user={driver} parkings={parkings} />
+      <AppSidebar user={driver} parkings={parkings} onRefreshParkings={refetch} isRefreshingParkings={isFetching} />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4">
+          <div className="flex items-center gap-2 px-2">
             <SidebarTrigger className="-ml-1" />
             <Separator
               orientation="vertical"
               className="mr-2 data-[orientation=vertical]:h-4"
             />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink href="/">Home</BreadcrumbLink>
+                </BreadcrumbItem>
+                {getBreadcrumbItems().map((item, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <BreadcrumbSeparator />
+                    {item}
+                  </div>
+                ))}
+              </BreadcrumbList>
+            </Breadcrumb>
           </div>
         </header>
-        <div>
+        <div className="px-2">
           {children}
         </div>
       </SidebarInset>
