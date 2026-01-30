@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter_Tight } from "next/font/google"
-
 import "./globals.css";
 import Link from "next/link";
 import { ThemeProvider } from "@/providers/theme-provider";
@@ -8,9 +7,8 @@ import { UserProvider } from "@/providers/user-provider";
 import { QueryProvider } from "@/providers/query-provider";
 import { Toaster } from "sonner";
 import { createClient } from "@/lib/supabase/server";
-import type { DriverData, HostData } from "@/types";
-import type { Parking } from "@/types";
 import { getParkingsByHostId } from "@/lib/parkings.server";
+import type { DriverData, HostData, Parking } from "@/types";
 
 export const metadata: Metadata = {
   title: "Parkito Host Dashboard",

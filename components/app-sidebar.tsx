@@ -81,7 +81,7 @@ const data = {
       icon: LifeBuoy,
     },
     {
-      name: "Feedback🚧",
+      name: "Feedback",
       url: "/feedback",
       icon: Send,
     }
@@ -124,7 +124,7 @@ export default function AppSidebar({
         <NavProjects title="Home" projects={data.home} />
         <NavProjects title="Parcheggio" projects={data.projects} />
         <NavProjects title="Servizi" projects={data.services} />
-        <div className="absolute bottom-0">
+        <div className="absolute bottom-0 w-full">
           <NavProjects title="" projects={data.secondary} />
         </div>
       </SidebarContent>
