@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
+import { createElement } from "react";
 import { Resend } from "resend";
 import { getUser } from "@/lib/getUser.server";
-import ThankYouEmail from "@/components/ThankYouEmail";
-import DashboardEmail from "@/components/DashboardEmail";
+import ThankYouEmail from "@/components/emails/ThankYouEmail";
+import DashboardEmail from "@/components/emails/DashboardEmail";
 
 const resend = new Resend(process.env.NEXT_RESEND_API_KEY);
 
-const FROM = process.env.CONTACT_RECEPIENT!;
+const FROM = `Parkito <${process.env.FROM_EMAIL}>`;
 
 /** Topic (select value) → subject, optional direct CC, optional env key for more CC (comma-separated). */
 const TOPIC_CONFIG: Record<
@@ -55,7 +56,11 @@ function getCcForTopic(topic: string): string[] {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { topic, message } = body as { topic?: string; message?: string };
+    const { topic, message } = body as {
+      topic?: string;
+      message?: string;
+      files?: Array<{ name: string; key: string }>;
+    };
 
     if (
       !topic ||
@@ -80,21 +85,15 @@ export async function POST(request: Request) {
     const user = await getUser();
     const userEmail = user?.email ?? null;
 
-    if (userEmail) {
+    if (userEmail && user) {
       const thankYou = await resend.emails.send({
         from: FROM,
         to: [userEmail],
-        subject: "Grazie per il tuo feedback – Parkito",
-        react: ThankYouEmail(),
+        subject: "Grazie per il tuo feedback - Parkito",
+        react: createElement(ThankYouEmail, { user }),
       });
       if (thankYou.error) {
         console.error("Resend thank-you error:", thankYou.error);
-        return NextResponse.json(
-          {
-            error: thankYou.error.message ?? "Invio email di conferma fallito",
-          },
-          { status: 500 }
-        );
       }
     }
 
@@ -103,7 +102,11 @@ export async function POST(request: Request) {
       to: [to],
       cc: cc.length > 0 ? cc : undefined,
       subject: config.subject,
-      react: DashboardEmail(),
+      react: createElement(DashboardEmail, {
+        user,
+        topic,
+        message,
+      }),
     });
 
     if (error) {

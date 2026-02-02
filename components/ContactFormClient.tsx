@@ -12,6 +12,10 @@ import { Spinner } from "./ui/spinner";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { cn } from "@/lib/utils";
+import { UploadDropzone } from "./ui/upload-dropzone";
+import { UploadProgress } from "./ui/upload-progress";
+import { useUploadFiles } from "@better-upload/client";
+
 
 const selectOptions: SelectOption[] = [
   { label: "Ho un'idea per la dashboard", memberId: "1" },
@@ -21,6 +25,7 @@ const selectOptions: SelectOption[] = [
 ];
 
 const MESSAGE_MAX_LENGTH = 1000;
+const maxFiles = 4;
 
 export default function ContactFormClient() {
 
@@ -29,6 +34,13 @@ export default function ContactFormClient() {
   const [message, setMessage] = useState<string>("");
   const [shakeKey, setShakeKey] = useState(0);
   const [counterShakeKey, setCounterShakeKey] = useState(0);
+  const [showUploader, setShowUploader] = useState(false);
+  const [removedFileKeys, setRemovedFileKeys] = useState<Set<string>>(new Set());
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+
+  const { control } = useUploadFiles({
+    route: 'images',
+  });
 
   const invalid = selectedOption === "" || message.length === 0;
   const messageInvalid = message.length === 0;
@@ -60,31 +72,48 @@ export default function ContactFormClient() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (invalid) {
       setShakeKey((k) => k + 1);
       return;
     }
-    handleSendEmail(message);
-  };
-
-  const handleSendEmail = async (value: string) => {
     setLoading(true);
     try {
+      let uploadedFiles: { name: string; key: string }[] = [];
+      if (pendingFiles.length > 0) {
+        const result = await control.upload(pendingFiles);
+        if (result.failedFiles?.length) {
+          toast.error("Alcuni file non sono stati caricati");
+          setLoading(false);
+          return;
+        }
+        uploadedFiles = (result.files ?? []).map((f) => ({
+          name: f.name,
+          key: f.objectInfo.key,
+        }));
+      }
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic: selectedOption, message: value }),
+        body: JSON.stringify({
+          topic: selectedOption,
+          message,
+          files: uploadedFiles,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         toast.error(data.error ?? "Invio fallito");
+        setLoading(false);
         return;
       }
       toast.success("Messaggio inviato");
       setMessage("");
       setSelectedOption("");
+      setPendingFiles([]);
+      setRemovedFileKeys(new Set());
+      control.reset();
     } catch {
       toast.error("Errore di connessione");
     } finally {
@@ -153,17 +182,79 @@ export default function ContactFormClient() {
                   </FieldContent>
                 </Field>
               </FieldGroup>
+              <FieldGroup>
+                <Field>
+                  <FieldLabel htmlFor="files">Allega un file</FieldLabel>
+                  <FieldContent>
+                    <div className="w-md mx-auto flex flex-col gap-4">
+                      <UploadDropzone
+                        control={control}
+                        accept="image/*,video/*"
+                        description={{
+                          maxFiles: maxFiles,
+                          fileTypes: 'JPEG, PNG, JPG, MOV, MP4, WEBP',
+                        }}
+                        uploadOverride={(files) => {
+                          setPendingFiles((prev) =>
+                            [...prev, ...Array.from(files)].slice(0, maxFiles)
+                          );
+                        }}
+                      />
+                      {pendingFiles.length > 0 && !loading && (
+                        <div className="grid gap-2">
+                          <p className="text-muted-foreground text-xs">
+                            Verranno caricati all&apos;invio del messaggio
+                          </p>
+                          {pendingFiles.map((file, index) => (
+                            <UploadProgress
+                              key={`pending-${index}-${file.name}-${file.size}`}
+                              pendingFile={{
+                                name: file.name,
+                                size: file.size,
+                                key: `pending-${index}`,
+                              }}
+                              onRemoveFile={(key) => {
+                                const i = parseInt(
+                                  key.replace("pending-", ""),
+                                  10
+                                );
+                                setPendingFiles((prev) =>
+                                  prev.filter((_, idx) => idx !== i)
+                                );
+                              }}
+                            />
+                          ))}
+                        </div>
+                      )}
+                      {control.progresses
+                        .filter((p) => !removedFileKeys.has(p.objectInfo.key))
+                        .map((p) => (
+                          <UploadProgress
+                            key={p.objectInfo.key}
+                            control={control}
+                            progress={p}
+                            onRemoveFile={(key) =>
+                              setRemovedFileKeys((prev) =>
+                                new Set(prev).add(key)
+                              )
+                            }
+                          />
+                        ))}
+                    </div>
+                  </FieldContent>
+                </Field>
+              </FieldGroup>
             </FieldSet>
           </FieldGroup>
-
         </form>
+
       </CardContent>
 
       {/* Footer with buttons*/}
       <CardFooter>
         <ButtonGroup orientation="horizontal" className="flex flex-row gap-4 w-full justify-end">
           <ButtonGroup>
-            <Button type="button" variant="outline" className="bg-accent dark:bg-sidebar-accent">
+            <Button type="button" variant="outline" className="bg-accent dark:bg-sidebar-accent" onClick={() => setShowUploader(!showUploader)}>
               <Plus className="size-4" />
               Allega un file
             </Button>
