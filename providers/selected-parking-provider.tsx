@@ -14,6 +14,8 @@ interface SelectedParkingContextValue {
   selectedParkingId: string | null;
   setSelectedParkingId: (id: string) => void;
   selectedParking: Parking | null;
+  /** True when parkings are loaded but selected ID not set yet (e.g. right after refresh, before effect runs). */
+  isInitializingSelection: boolean;
 }
 
 const SelectedParkingContext = createContext<SelectedParkingContextValue | undefined>(undefined);
@@ -43,13 +45,16 @@ export function SelectedParkingProvider({
     [parkings, selectedParkingId]
   );
 
+  const isInitializingSelection = parkings.length > 0 && selectedParkingId === null;
+
   const value = useMemo(
     () => ({
       selectedParkingId,
       setSelectedParkingId: setSelectedParkingIdState,
       selectedParking,
+      isInitializingSelection,
     }),
-    [selectedParkingId, selectedParking]
+    [selectedParkingId, selectedParking, isInitializingSelection]
   );
 
   return (

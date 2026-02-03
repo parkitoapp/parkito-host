@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import BookACall from "@/components/BookACall";
 import Calendar from "@/components/Calendar";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -26,7 +26,7 @@ const legendItems = [
 export default function page() {
   return (
     <div className="">
-      <div className="w-full flex flex-row justify-between items-center mb-10">
+      <div className="w-full flex flex-row justify-between items-center mb-6">
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-bold">Calendario Delle Disponibilità</h1>
           <p className="text-sm text-gray-300">
@@ -34,7 +34,7 @@ export default function page() {
           </p>
         </div>
         <div className="flex flex-row gap-2">
-          <Button variant="default">Suggerimenti sui prezzi</Button>
+          <BookACall />
         </div>
       </div>
       <div className="w-full grid grid-cols-12 gap-4">

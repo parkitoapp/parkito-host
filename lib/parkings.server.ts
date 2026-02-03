@@ -10,11 +10,15 @@ import type {
 
 function normalizeDate(d: string | Date | null | undefined): string {
   if (d == null) return "";
-  return typeof d === "string" ? d.slice(0, 10) : (d as Date).toISOString().slice(0, 10);
+  return typeof d === "string"
+    ? d.slice(0, 10)
+    : (d as Date).toISOString().slice(0, 10);
 }
 
 /** Group availability rows by calendar date (using start_datetime). Each row = one time slot; multiple rows per day = multiple slots. */
-function groupAvailabilityByDate(rows: PktAvailability[]): Map<string, PktAvailability[]> {
+function groupAvailabilityByDate(
+  rows: PktAvailability[]
+): Map<string, PktAvailability[]> {
   const byDate = new Map<string, PktAvailability[]>();
   for (const row of rows) {
     const date = normalizeDate(row?.start_datetime);
@@ -41,7 +45,8 @@ function availabilityToDays(
   const byDate = groupAvailabilityByDate(rows);
   const dates = Array.from(byDate.keys()).sort();
   const parkingDefaultPrice =
-    (parking as { base_hourly_price?: number | null }).base_hourly_price ?? null;
+    (parking as { base_hourly_price?: number | null }).base_hourly_price ??
+    null;
 
   return dates.map((date) => {
     const slots = byDate.get(date)!;
@@ -102,34 +107,54 @@ function coerceParkingId(id: string): string | number {
  * Use parking, availability, and reservations where needed. Calendar uses the derived `days` array.
  * Request frequency is limited by client-side React Query staleTime (7 days).
  */
-export async function getParkingFullInfo(parkingId: string): Promise<ParkingFullInfo | null> {
+export async function getParkingFullInfo(
+  parkingId: string
+): Promise<ParkingFullInfo | null> {
   const idParam = coerceParkingId(parkingId);
   try {
     const supabase = await createClient();
 
-    const parkingRes = await supabase.from("pkt_parking").select("*").eq("id", idParam).single();
+    const parkingRes = await supabase
+      .from("pkt_parking")
+      .select("*")
+      .eq("id", idParam)
+      .single();
     if (parkingRes.error || !parkingRes.data) {
-      console.error("Error fetching parking by id (server):", parkingRes.error?.message);
+      console.error(
+        "Error fetching parking by id (server):",
+        parkingRes.error?.message
+      );
       return null;
     }
     const parking = parkingRes.data as Parking;
 
     const availabilityRes = await supabase
       .from("pkt_availability")
-      .select("id, parking_id, start_datetime, end_datetime, is_available, hourly_price")
+      .select(
+        "id, parking_id, start_datetime, end_datetime, is_available, hourly_price"
+      )
       .eq("parking_id", idParam)
       .order("start_datetime", { ascending: true });
     let availability: PktAvailability[] = [];
     if (availabilityRes.error) {
-      console.warn("Error fetching pkt_availability (server):", availabilityRes.error?.message);
+      console.warn(
+        "Error fetching pkt_availability (server):",
+        availabilityRes.error?.message
+      );
     } else {
       availability = (availabilityRes.data ?? []) as PktAvailability[];
     }
 
     let reservations: PktReservation[] = [];
-    const reservationsRes = await supabase.from("pkt_reservations").select("*").eq("parking_id", idParam);
+    const reservationsRes = await supabase
+      .from("pkt_reservations")
+      .select("*")
+      .eq("parking_id", idParam);
     if (reservationsRes.error) {
-      console.warn("Error fetching pkt_reservations (server):", reservationsRes.error?.message);
+      console.warn(
+        "Error fetching pkt_reservations (server):",
+        reservationsRes.error?.message
+      );
     } else {
       reservations = (reservationsRes.data ?? []) as PktReservation[];
     }

@@ -9,7 +9,9 @@ export function useParkingInfo(parkingId: string | null) {
   const query = useQuery({
     queryKey: ["parking-info", parkingId],
     queryFn: async (): Promise<ParkingFullInfo> => {
-      const res = await fetch(`/api/parking/${parkingId}`);
+      const res = await fetch(`/api/parking/${parkingId}`, {
+        cache: "no-store",
+      });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error ?? "Failed to fetch parking info");
