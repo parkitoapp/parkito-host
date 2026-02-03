@@ -5,8 +5,8 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister"
 import type { ReactNode } from "react"
 
-const PARKINGS_STALE_MS = 5 * 60 * 1000 // 5 minutes
-const CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000 // 24 hours
+const PARKINGS_STALE_MS = 60 * 60 * 24 * 7 * 1000 // 7 days
+const CACHE_MAX_AGE_MS = 60 * 60 * 24 * 7 * 1000 // 7 days
 
 function makeQueryClient() {
   return new QueryClient({

@@ -2,6 +2,7 @@
 
 import { useUser } from "@/providers/user-provider"
 import { useParkings } from "@/hooks/use-parkings"
+import { SelectedParkingProvider } from "@/providers/selected-parking-provider"
 import { Spinner } from "@/components/ui/spinner"
 import { useRouter, usePathname } from "next/navigation"
 import { useEffect } from "react"
@@ -82,9 +83,10 @@ export default function DashboardLayout({
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar user={driver} parkings={parkings} onRefreshParkings={refetch} isRefreshingParkings={isFetching} />
-      <SidebarInset>
+    <SelectedParkingProvider parkings={parkings}>
+      <SidebarProvider>
+        <AppSidebar user={driver} parkings={parkings} onRefreshParkings={refetch} isRefreshingParkings={isFetching} />
+        <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-2">
             <SidebarTrigger className="-ml-1" />
@@ -112,5 +114,6 @@ export default function DashboardLayout({
         </div>
       </SidebarInset>
     </SidebarProvider>
+    </SelectedParkingProvider>
   )
 }

@@ -17,6 +17,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { useSelectedParkingOptional } from "@/providers/selected-parking-provider"
 import { Parking } from "@/types"
 import Image from "next/image"
 
@@ -27,7 +28,7 @@ const teamSwitcherButtonContent = (activeTeam: Parking) => (
     </div>
     <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
       <span className="truncate font-medium">{activeTeam.address}</span>
-      <span className="truncate text-xs">{activeTeam.city}</span>
+      <span className="truncate text-xs">{activeTeam.city}, ID: {activeTeam.id}</span>
     </div>
     <ChevronsUpDown className="ml-auto group-data-[collapsible=icon]:hidden" />
   </>
@@ -45,14 +46,18 @@ export function TeamSwitcher({
   isRefreshing?: boolean
 }) {
   const { isMobile } = useSidebar()
-  const [activeTeam, setActiveTeam] = React.useState<Parking | null>(teams[0] || null)
+  const selectedCtx = useSelectedParkingOptional()
+  const [localTeam, setLocalTeam] = React.useState<Parking | null>(teams[0] || null)
 
-  // Update active team if teams change (e.g. after fetch)
+  const activeTeam = selectedCtx?.selectedParking ?? localTeam ?? teams[0] ?? null
+
   React.useEffect(() => {
     if (!activeTeam && teams.length > 0) {
-      setActiveTeam(teams[0])
+      const first = teams[0]
+      if (selectedCtx) selectedCtx.setSelectedParkingId(first.id)
+      else setLocalTeam(first)
     }
-  }, [teams, activeTeam])
+  }, [teams, activeTeam, selectedCtx])
 
   if (!activeTeam) {
     return (
@@ -119,13 +124,16 @@ export function TeamSwitcher({
             {teams.map((team, index) => (
               <DropdownMenuItem
                 key={index}
-                onClick={() => setActiveTeam(team)}
+                onClick={() => {
+                  if (selectedCtx) selectedCtx.setSelectedParkingId(team.id)
+                  else setLocalTeam(team)
+                }}
                 className="gap-2 p-2"
               >
                 <div className="flex size-6 items-center justify-center rounded-md border">
                   <MapPin className="size-3.5 shrink-0" />
                 </div>
-                {team.address}
+                {team.address}, ID: {team.id}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>

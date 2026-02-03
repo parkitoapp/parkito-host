@@ -21,7 +21,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarRail,
 } from "@/components/ui/sidebar"
 import { DriverData, Parking } from "@/types"
 
@@ -131,7 +130,6 @@ export default function AppSidebar({
       <SidebarFooter>
         <NavUser user={user} interactive={mounted} />
       </SidebarFooter>
-      <SidebarRail />
     </Sidebar>
   )
 }

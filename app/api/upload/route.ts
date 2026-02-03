@@ -35,6 +35,7 @@ export async function POST(req: Request): Promise<Response> {
             }
 
             return {
+              // TODO: adding a subfolder with a timestamp so its easier to visualized the file connected to a specific request.
               generateObjectInfo: ({ file }) => ({
                 key: `${user.id}/${file.name}`,
                 metadata: {
