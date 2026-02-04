@@ -81,6 +81,8 @@ export interface PktAvailability {
   end_datetime: string;
   is_available: boolean;
   hourly_price?: number | null; // overrides parking base_hourly_price for this slot
+  /** Recurrence rule serialized as text (e.g. RRULE or custom); truthy = part of a recurring series */
+  recurrence_rule?: string | null;
   [key: string]: unknown; // 3 columns skipped for now
 }
 

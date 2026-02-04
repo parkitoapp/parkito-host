@@ -8,7 +8,6 @@ export const RIPETIZIONE_OPTIONS = [
   { value: "ogni_settimana", label: "Ogni settimana" },
   { value: "ogni_due_settimane", label: "Ogni due settimane" },
   { value: "ogni_mese", label: "Ogni mese" },
-  { value: "personalizzata", label: "Personalizzata" },
 ] as const;
 
 export type RipetizioneValue = (typeof RIPETIZIONE_OPTIONS)[number]["value"];
@@ -24,9 +23,7 @@ const ONE_YEAR_MONTHS = 12;
  */
 export function computeDatesFromRipetizione(
   ripetizione: RipetizioneValue,
-  selectedDateStr: string,
-  rangeStart?: string,
-  rangeEnd?: string
+  selectedDateStr: string
 ): string[] {
   const pad = (n: number) => String(n).padStart(2, "0");
   const toDateStr = (d: Date) =>
@@ -81,25 +78,12 @@ export function computeDatesFromRipetizione(
       const end = new Date(selected);
       end.setFullYear(end.getFullYear() + 1);
       for (let m = 0; m < ONE_YEAR_MONTHS; m++) {
-        const d = new Date(selected.getFullYear(), selected.getMonth() + m, dayOfMonth);
+        const d = new Date(
+          selected.getFullYear(),
+          selected.getMonth() + m,
+          dayOfMonth
+        );
         if (d > end) break;
-        dates.push(toDateStr(d));
-      }
-      return dates;
-    }
-
-    case "personalizzata": {
-      if (!rangeStart || !rangeEnd) return [selectedDateStr];
-      const start = new Date(rangeStart + "T12:00:00");
-      let end = new Date(rangeEnd + "T12:00:00");
-      const oneYearLater = new Date(selected);
-      oneYearLater.setDate(oneYearLater.getDate() + ONE_YEAR_DAYS);
-      if (end > oneYearLater) end = oneYearLater;
-      if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) {
-        return [selectedDateStr];
-      }
-      const dates: string[] = [];
-      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         dates.push(toDateStr(d));
       }
       return dates;

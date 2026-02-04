@@ -131,7 +131,7 @@ export async function getParkingFullInfo(
     const availabilityRes = await supabase
       .from("pkt_availability")
       .select(
-        "id, parking_id, start_datetime, end_datetime, is_available, hourly_price"
+        "id, parking_id, start_datetime, end_datetime, is_available, hourly_price, recurrence_rule"
       )
       .eq("parking_id", idParam)
       .order("start_datetime", { ascending: true });

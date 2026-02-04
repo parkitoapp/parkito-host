@@ -19,6 +19,7 @@ import type { PendingDayUpdate } from "@/lib/availability-pending";
 import { computeDatesFromRipetizione } from "@/lib/availability-dates";
 import type { PktAvailability, ParkingDayInfo } from "@/types";
 import { toast } from "sonner";
+import { Repeat2 } from "lucide-react";
 
 function getAvailabilityDateStr(row: PktAvailability): string {
   const s = row.start_datetime;
@@ -40,21 +41,29 @@ function isFullDaySlot(slot: PktAvailability): boolean {
 function pendingUpdateToRows(dateStr: string, update: PendingDayUpdate): PktAvailability[] {
   const rows: PktAvailability[] = [];
   if (update.slots.length === 0) {
+    const rawRule =
+      update.wholeDayRipetizione && update.wholeDayRipetizione !== "mai"
+        ? update.wholeDayRipetizione
+        : null;
     rows.push({
       parking_id: "",
       start_datetime: `${dateStr}T00:00:00`,
       end_datetime: `${dateStr}T23:59:00`,
       is_available: update.wholeDayAvailable,
       hourly_price: update.wholeDayHourlyPrice ? Number(update.wholeDayHourlyPrice) : null,
+      recurrence_rule: rawRule,
     });
   } else {
     for (const slot of update.slots) {
+      const rawRule =
+        slot.ripetizione && slot.ripetizione !== "mai" ? slot.ripetizione : null;
       rows.push({
         parking_id: "",
         start_datetime: `${dateStr}T${slot.startTime}:00`,
         end_datetime: `${dateStr}T${slot.endTime}:00`,
         is_available: slot.isAvailable,
         hourly_price: slot.hourlyPrice ? Number(slot.hourlyPrice) : null,
+        recurrence_rule: rawRule,
       });
     }
   }
@@ -231,6 +240,10 @@ export default function Calendar() {
         if (dayUpdate.slots.length === 0) {
           const dates = computeDatesFromRipetizione(dayUpdate.wholeDayRipetizione, dateStr);
           const availabilityType = dayUpdate.wholeDayAvailable ? "ALWAYS_AVAILABLE" : "UNAVAILABLE";
+          const recurrence_rule =
+            dayUpdate.wholeDayRipetizione && dayUpdate.wholeDayRipetizione !== "mai"
+              ? dayUpdate.wholeDayRipetizione
+              : null;
           await savePayload({
             parking_id: selectedParkingId,
             availabilityType,
@@ -238,6 +251,7 @@ export default function Calendar() {
             startTime: { hour: 0, minute: 0 },
             endTime: { hour: 23, minute: 59 },
             hourly_price: dayUpdate.wholeDayHourlyPrice ? Number(dayUpdate.wholeDayHourlyPrice) : null,
+            recurrence_rule,
           });
         } else {
           for (const slot of dayUpdate.slots) {
@@ -245,6 +259,8 @@ export default function Calendar() {
             const availabilityType = slot.isAvailable ? "TIME_SLOT" : "UNAVAILABLE";
             const [sh, sm] = slot.startTime.split(":").map(Number);
             const [eh, em] = slot.endTime.split(":").map(Number);
+            const recurrence_rule =
+              slot.ripetizione && slot.ripetizione !== "mai" ? slot.ripetizione : null;
             await savePayload({
               parking_id: selectedParkingId,
               availabilityType,
@@ -252,6 +268,7 @@ export default function Calendar() {
               startTime: { hour: sh || 0, minute: sm || 0 },
               endTime: { hour: eh ?? 23, minute: em ?? 59 },
               hourly_price: slot.hourlyPrice ? Number(slot.hourlyPrice) : null,
+              recurrence_rule,
             });
           }
         }
@@ -268,6 +285,13 @@ export default function Calendar() {
     }
   }, [selectedParkingId, refetch]);
 
+  const resetPending = useCallback(async () => {
+    if (!selectedParkingId) return;
+    clearPending(selectedParkingId, () => setPendingVersion((v) => v + 1));
+    await refetch();
+    toast.success("Modifiche annullate");
+  }, [selectedParkingId, refetch]);
+
   const pending = useMemo(() => {
     void pendingVersion;
     return typeof window !== "undefined" && selectedParkingId ? getPending(selectedParkingId) : null;
@@ -278,9 +302,14 @@ export default function Calendar() {
     const deleteIds = new Set(pending?.deleteIds ?? []);
     const deleteDates = new Set(pending?.deleteDates ?? []);
     const updates = pending?.updates ?? {};
+
+    // Start from server data minus any pending deletes (by id or by date)
     const filtered = list.filter(
-      (row) => !deleteDates.has(getAvailabilityDateStr(row)) && !(row.id != null && deleteIds.has(row.id))
+      (row) =>
+        !deleteDates.has(getAvailabilityDateStr(row)) &&
+        !(row.id != null && deleteIds.has(row.id))
     );
+
     const byDate = new Map<string, PktAvailability[]>();
     for (const row of filtered) {
       const dateStr = getAvailabilityDateStr(row);
@@ -288,9 +317,50 @@ export default function Calendar() {
       arr.push(row);
       byDate.set(dateStr, arr);
     }
-    for (const [dateStr, dayUpdate] of Object.entries(updates)) {
-      byDate.set(dateStr, pendingUpdateToRows(dateStr, dayUpdate));
+
+    // Apply pending updates, expanding recurrence so the preview matches the final result
+    for (const [selectedDateStr, dayUpdate] of Object.entries(updates)) {
+      if (dayUpdate.slots.length === 0) {
+        // Whole-day update (ALWAYS_AVAILABLE or UNAVAILABLE)
+        const dates = computeDatesFromRipetizione(
+          dayUpdate.wholeDayRipetizione,
+          selectedDateStr
+        );
+        for (const date of dates) {
+          byDate.set(date, pendingUpdateToRows(date, dayUpdate));
+        }
+      } else {
+        // Time slots: each slot may have its own recurrence; merge per date
+        const perDate = new Map<string, PktAvailability[]>();
+        for (const slot of dayUpdate.slots) {
+          const dates = computeDatesFromRipetizione(
+            slot.ripetizione,
+            selectedDateStr
+          );
+          for (const d of dates) {
+            const arr = perDate.get(d) ?? [];
+            arr.push({
+              parking_id: "",
+              start_datetime: `${d}T${slot.startTime}:00`,
+              end_datetime: `${d}T${slot.endTime}:00`,
+              is_available: slot.isAvailable,
+              hourly_price: slot.hourlyPrice
+                ? Number(slot.hourlyPrice)
+                : null,
+              recurrence_rule:
+                slot.ripetizione && slot.ripetizione !== "mai"
+                  ? slot.ripetizione
+                  : null,
+            });
+            perDate.set(d, arr);
+          }
+        }
+        perDate.forEach((rows, date) => {
+          byDate.set(date, rows);
+        });
+      }
     }
+
     return byDate;
   }, [parkingInfo?.availability, pending]);
 
@@ -320,6 +390,17 @@ export default function Calendar() {
   }, [effectiveDays]);
 
   const availabilityByDate = useMemo(() => effectiveAvailability, [effectiveAvailability]);
+
+  // A day is "recurrent" if any of its slots has a non-empty recurrence_rule
+  const recurrentDates = useMemo(() => {
+    const set = new Set<string>();
+    effectiveAvailability.forEach((rows, dateStr) => {
+      if (rows.some((r) => typeof r.recurrence_rule === "string" && r.recurrence_rule.trim() !== "")) {
+        set.add(dateStr);
+      }
+    });
+    return set;
+  }, [effectiveAvailability]);
 
   const defaultHourlyPrice =
     (parkingInfo?.parking as { base_hourly_price?: number | null } | undefined)?.base_hourly_price ?? null;
@@ -377,6 +458,7 @@ export default function Calendar() {
               const dateObj = typeof day === "object" && day !== null && "date" in day ? (day as { date: Date }).date : (day as Date);
               const dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, "0")}-${String(dateObj.getDate()).padStart(2, "0")}`;
               const slotsForDay = availabilityByDate.get(dateStr) ?? [];
+              const isRecurrent = recurrentDates.has(dateStr);
               const hasNoAvailabilityRecord = slotsForDay.length === 0;
               const dayInfo = dateToDayInfo.get(dateStr);
               const price = dayInfo?.price ?? defaultHourlyPrice;
@@ -420,8 +502,9 @@ export default function Calendar() {
                     />
                   )}
                   {isUnavailable && (
-                    <span className="absolute bottom-1 left-1 right-1 z-10 text-center text-lg font-bold text-destructive">
-                      Non disponibile
+                    <span className="absolute bottom-1 left-1 right-1 z-10 flex items-center justify-center gap-1.5 text-lg font-bold text-destructive">
+                      <span>Non disponibile</span>
+                      {isRecurrent && <Repeat2 className="h-4 w-4 shrink-0" aria-hidden />}
                     </span>
                   )}
                   <div className="absolute top-0.5 left-1 right-1 z-10 flex flex-col items-start gap-0.5">
@@ -429,15 +512,25 @@ export default function Calendar() {
                       {dayModifiers.today ? (
                         <div className="flex items-center gap-1 justify-between w-full">
                           <p className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-primary text-sm font-semibold">{children}</p>
-                          {effectiveShowDot && (
-                            <span className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full ${effectiveDotClass}`} />
+                          {(effectiveShowDot || isRecurrent) && (
+                            <span className="flex items-center gap-1 shrink-0">
+                              {effectiveShowDot && (
+                                <span className={`inline-block h-1.5 w-1.5 rounded-full ${effectiveDotClass}`} />
+                              )}
+                              {isRecurrent && <Repeat2 className="h-4 w-4 text-current" aria-hidden />}
+                            </span>
                           )}
                         </div>
                       ) : (
                         <div className="flex items-center gap-1 justify-between w-full">
                           <p className="text-sm font-semibold leading-tight">{children}</p>
-                          {effectiveShowDot && (
-                            <span className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full ${effectiveDotClass}`} />
+                          {(effectiveShowDot || isRecurrent) && (
+                            <span className="flex items-center gap-1 shrink-0">
+                              {effectiveShowDot && (
+                                <span className={`inline-block h-1.5 w-1.5 rounded-full ${effectiveDotClass}`} />
+                              )}
+                              {isRecurrent && <Repeat2 className="h-4 w-4 text-current" aria-hidden />}
+                            </span>
                           )}
                         </div>
                       )}
@@ -504,7 +597,14 @@ export default function Calendar() {
           </div>
         )}
         {hasPendingChanges && (
-          <div className="mx-4 mb-2 flex justify-end">
+          <div className="mx-4 mb-2 flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={resetPending}
+              disabled={savingBulk}
+            >
+              Annulla modifiche
+            </Button>
             <Button
               onClick={applyPending}
               disabled={savingBulk}

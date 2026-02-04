@@ -32,6 +32,7 @@ export async function POST(request: Request) {
       startTime,
       endTime,
       hourly_price,
+      recurrence_rule,
     } = body;
 
     if (!parking_id || !availabilityType) {
@@ -72,6 +73,19 @@ export async function POST(request: Request) {
       availabilityType,
       hourly_price: hourly_price ?? null,
     };
+
+    // Persist recurrence info when present: treat "mai" / empty as no recurrence
+    const normalizedRecurrence: string | null =
+      typeof recurrence_rule === "string" && recurrence_rule.trim() !== "" && recurrence_rule !== "mai"
+        ? recurrence_rule
+        : ripetizione && ripetizione !== "mai"
+          ? (ripetizione as string)
+          : null;
+    if (normalizedRecurrence) {
+      payload.recurrence_rule = normalizedRecurrence;
+    } else {
+      payload.recurrence_rule = null;
+    }
 
     if (availabilityType === "TIME_SLOT" || availabilityType === "UNAVAILABLE") {
       if (startTime && endTime) {
