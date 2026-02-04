@@ -75,12 +75,16 @@ export interface AvailabilityEditorProps {
   onOpenChange: (open: boolean) => void;
   selectedDate: Date | undefined;
   selectedDateStr: string | null;
+  /** Optional: when provided, the editor works in \"range\" mode and applies changes to all dates. */
+  selectedDatesRange?: string[] | null;
   parkingId: string | null;
   parkingInfo: ParkingFullInfo | null;
   baseHourlyPrice: number | null;
   refetch: () => void;
   /** Called when pending changes are updated (so parent can show global save button). */
   onPendingChange?: () => void;
+  /** Editor mode: single day (default) or range of days. */
+  mode?: "single" | "range";
 }
 
 const DEFAULT_RIPETIZIONE: RipetizioneValue = "mai";
@@ -114,11 +118,13 @@ export function AvailabilityEditor({
   onOpenChange,
   selectedDate,
   selectedDateStr,
+  selectedDatesRange,
   parkingId,
   parkingInfo,
   baseHourlyPrice,
   refetch,
   onPendingChange,
+  mode = "single",
 }: AvailabilityEditorProps) {
   const [wholeDayAvailable, setWholeDayAvailable] = useState(true);
   const [wholeDayHourlyPrice, setWholeDayHourlyPrice] = useState("");
@@ -129,16 +135,23 @@ export function AvailabilityEditor({
   const [error, setError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const availabilityForDate = useMemo(() => parkingInfo?.availability ?? [], [parkingInfo]);
-  const daySlots = useMemo(() => selectedDateStr
-    ? availabilityForDate.filter((row: PktAvailability) => {
-      const dateStr =
-        typeof row.start_datetime === "string"
-          ? row.start_datetime.slice(0, 10)
-          : (row.start_datetime as Date).toISOString().slice(0, 10);
-      return dateStr === selectedDateStr;
-    })
-    : [], [selectedDateStr, availabilityForDate]);
+  const availabilityForDate = useMemo(
+    () => parkingInfo?.availability ?? [],
+    [parkingInfo]
+  );
+  const daySlots = useMemo(
+    () =>
+      selectedDateStr
+        ? availabilityForDate.filter((row: PktAvailability) => {
+            const dateStr =
+              typeof row.start_datetime === "string"
+                ? row.start_datetime.slice(0, 10)
+                : (row.start_datetime as Date).toISOString().slice(0, 10);
+            return dateStr === selectedDateStr;
+          })
+        : [],
+    [selectedDateStr, availabilityForDate]
+  );
 
   const daySlotPatternKeys = useMemo(
     () => new Set(daySlots.map((r) => getRecordPatternKey(r))),
@@ -187,6 +200,18 @@ export function AvailabilityEditor({
   useEffect(() => {
     if (!open || !selectedDateStr) return;
     setError(null);
+
+    // In range mode, treat the editor as a template for all days in the range.
+    if (mode === "range") {
+      setWholeDayAvailable(true);
+      setWholeDayHourlyPrice(
+        baseHourlyPrice != null ? String(baseHourlyPrice) : ""
+      );
+      setWholeDayRipetizione(DEFAULT_RIPETIZIONE);
+      setSlots([]);
+      return;
+    }
+
     const pending = parkingId ? getPending(parkingId) : null;
     const pendingUpdate = pending?.updates[selectedDateStr];
     const pendingDelete = pending?.deleteDates.includes(selectedDateStr);
@@ -199,7 +224,9 @@ export function AvailabilityEditor({
     }
     if (pendingDelete) {
       setWholeDayAvailable(true);
-      setWholeDayHourlyPrice(baseHourlyPrice != null ? String(baseHourlyPrice) : "");
+      setWholeDayHourlyPrice(
+        baseHourlyPrice != null ? String(baseHourlyPrice) : ""
+      );
       setWholeDayRipetizione(DEFAULT_RIPETIZIONE);
       setSlots([]);
       return;
@@ -233,7 +260,7 @@ export function AvailabilityEditor({
       setWholeDayRipetizione(DEFAULT_RIPETIZIONE);
       setSlots(slotsFromAvailability(daySlots, baseHourlyPrice));
     }
-  }, [open, selectedDateStr, baseHourlyPrice, daySlots, parkingId]);
+  }, [open, selectedDateStr, baseHourlyPrice, daySlots, parkingId, mode]);
 
   const formatSelectedDate = useCallback((date: Date | undefined) => {
     if (!date) return "";
@@ -284,27 +311,37 @@ export function AvailabilityEditor({
   };
 
   const handleSave = () => {
-    if (!selectedDateStr || !parkingId) return;
+    if (!parkingId) return;
+    if (mode === "single" && !selectedDateStr) return;
+    if (mode === "range" && (!selectedDatesRange || selectedDatesRange.length === 0)) return;
     setSaving(true);
     setError(null);
     try {
-      mergePendingUpdate(
-        parkingId,
-        selectedDateStr,
-        {
-          wholeDayAvailable,
-          wholeDayHourlyPrice,
-          wholeDayRipetizione,
-          slots: slots.map((s) => ({
-            startTime: s.startTime,
-            endTime: s.endTime,
-            isAvailable: s.isAvailable,
-            hourlyPrice: s.hourlyPrice,
-            ripetizione: s.ripetizione,
-          })),
-        },
-        onPendingChange
-      );
+      const updatePayload = {
+        wholeDayAvailable,
+        wholeDayHourlyPrice,
+        wholeDayRipetizione,
+        slots: slots.map((s) => ({
+          startTime: s.startTime,
+          endTime: s.endTime,
+          isAvailable: s.isAvailable,
+          hourlyPrice: s.hourlyPrice,
+          ripetizione: s.ripetizione,
+        })),
+      };
+
+      if (mode === "range" && selectedDatesRange && selectedDatesRange.length > 0) {
+        for (const dateStr of selectedDatesRange) {
+          mergePendingUpdate(parkingId, dateStr, updatePayload, onPendingChange);
+        }
+      } else if (selectedDateStr) {
+        mergePendingUpdate(
+          parkingId,
+          selectedDateStr,
+          updatePayload,
+          onPendingChange
+        );
+      }
       toast.success("Modifiche salvate in bozza");
       onPendingChange?.();
       onOpenChange(false);
@@ -365,7 +402,36 @@ export function AvailabilityEditor({
               <SheetTitle className="text-xl capitalize">
                 {formatSelectedDate(selectedDate)}
               </SheetTitle>
-              <SheetDescription>Modifica disponibilità</SheetDescription>
+              <SheetDescription>
+                {mode === "range" && selectedDatesRange && selectedDatesRange.length > 1 ? (
+                  <>
+                    Da{" "}
+                    <span className="font-semibold">
+                      {new Date(selectedDatesRange[0] + "T12:00:00").toLocaleDateString(
+                        "it-IT",
+                        { day: "numeric", month: "long" }
+                      )}
+                    </span>{" "}
+                    a{" "}
+                    <span className="font-semibold">
+                      {new Date(
+                        selectedDatesRange[selectedDatesRange.length - 1] +
+                          "T12:00:00"
+                      ).toLocaleDateString("it-IT", {
+                        day: "numeric",
+                        month: "long",
+                      })}
+                    </span>{" "}
+                    (
+                    <span className="font-semibold">
+                      {selectedDatesRange.length} giorni
+                    </span>
+                    )
+                  </>
+                ) : (
+                  "Modifica disponibilità"
+                )}
+              </SheetDescription>
             </div>
             <SheetClose asChild>
               <Button variant="ghost" size="icon" className="shrink-0 rounded-full">
@@ -521,6 +587,12 @@ export function AvailabilityEditor({
               ))}
             </div>
 
+            {mode === "range" && (
+              <p className="text-xs text-muted-foreground">
+                Se imposti una ripetizione, le modifiche possono estendersi oltre
+                l&apos;intervallo selezionato.
+              </p>
+            )}
             {error && (
               <p className="text-sm text-destructive">{error}</p>
             )}
