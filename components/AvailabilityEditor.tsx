@@ -85,6 +85,8 @@ export interface AvailabilityEditorProps {
   onPendingChange?: () => void;
   /** Editor mode: single day (default) or range of days. */
   mode?: "single" | "range";
+  /** Optional: called after a successful range save so the calendar can clear the range highlight. */
+  onRangeSaveComplete?: () => void;
 }
 
 const DEFAULT_RIPETIZIONE: RipetizioneValue = "mai";
@@ -125,6 +127,7 @@ export function AvailabilityEditor({
   refetch,
   onPendingChange,
   mode = "single",
+  onRangeSaveComplete,
 }: AvailabilityEditorProps) {
   const [wholeDayAvailable, setWholeDayAvailable] = useState(true);
   const [wholeDayHourlyPrice, setWholeDayHourlyPrice] = useState("");
@@ -143,12 +146,12 @@ export function AvailabilityEditor({
     () =>
       selectedDateStr
         ? availabilityForDate.filter((row: PktAvailability) => {
-            const dateStr =
-              typeof row.start_datetime === "string"
-                ? row.start_datetime.slice(0, 10)
-                : (row.start_datetime as Date).toISOString().slice(0, 10);
-            return dateStr === selectedDateStr;
-          })
+          const dateStr =
+            typeof row.start_datetime === "string"
+              ? row.start_datetime.slice(0, 10)
+              : (row.start_datetime as Date).toISOString().slice(0, 10);
+          return dateStr === selectedDateStr;
+        })
         : [],
     [selectedDateStr, availabilityForDate]
   );
@@ -334,6 +337,7 @@ export function AvailabilityEditor({
         for (const dateStr of selectedDatesRange) {
           mergePendingUpdate(parkingId, dateStr, updatePayload, onPendingChange);
         }
+        onRangeSaveComplete?.();
       } else if (selectedDateStr) {
         mergePendingUpdate(
           parkingId,
@@ -416,7 +420,7 @@ export function AvailabilityEditor({
                     <span className="font-semibold">
                       {new Date(
                         selectedDatesRange[selectedDatesRange.length - 1] +
-                          "T12:00:00"
+                        "T12:00:00"
                       ).toLocaleDateString("it-IT", {
                         day: "numeric",
                         month: "long",

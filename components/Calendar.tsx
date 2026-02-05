@@ -113,7 +113,9 @@ export default function Calendar() {
   const [viewMode, setViewMode] = useState<CalendarViewMode>("single");
   const [rangeSelection, setRangeSelection] = useState<DateRange | undefined>();
   const showLoading =
-    isInitializingSelection || (selectedParkingId != null && (isLoading || isFetching));
+    isInitializingSelection ||
+    (selectedParkingId != null && (isLoading || isFetching)) ||
+    savingBulk;
 
   const hasPendingChanges = useMemo(() => {
     void pendingVersion; // force re-run when draft changes (session storage)
@@ -145,11 +147,12 @@ export default function Calendar() {
         dateToIds.set(dateStr, ids);
       }
 
-      const deleteById = async (id: number) => {
+      const deleteMany = async (ids: number[]) => {
+        if (!ids.length) return;
         const res = await fetch("/api/availability/delete", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ availability_id: id }),
+          body: JSON.stringify({ availability_ids: ids }),
         });
         if (!res.ok && res.status !== 404) {
           const j = await res.json().catch(() => ({}));
@@ -157,12 +160,17 @@ export default function Calendar() {
         }
       };
 
+      // Collect all ids that must be deleted before applying updates
+      const allIdsToDelete = new Set<number>();
+
       for (const id of pending.deleteIds) {
-        await deleteById(id);
+        allIdsToDelete.add(id);
       }
       for (const dateStr of pending.deleteDates) {
         const ids = dateToIds.get(dateStr) ?? [];
-        for (const id of ids) await deleteById(id);
+        for (const id of ids) {
+          allIdsToDelete.add(id);
+        }
       }
 
       const savePayload = async (body: Record<string, unknown>) => {
@@ -179,7 +187,9 @@ export default function Calendar() {
 
       for (const [dateStr, dayUpdate] of Object.entries(pending.updates)) {
         const idsToDelete = dateToIds.get(dateStr) ?? [];
-        for (const id of idsToDelete) await deleteById(id);
+        for (const id of idsToDelete) {
+          allIdsToDelete.add(id);
+        }
 
         if (dayUpdate.slots.length === 0) {
           const dates = computeDatesFromRipetizione(dayUpdate.wholeDayRipetizione, dateStr);
@@ -216,6 +226,11 @@ export default function Calendar() {
             });
           }
         }
+      }
+
+      // Perform the actual bulk delete at the end, once
+      if (allIdsToDelete.size > 0) {
+        await deleteMany(Array.from(allIdsToDelete));
       }
 
       clearPending(selectedParkingId, () => setPendingVersion((v) => v + 1));
@@ -617,7 +632,9 @@ export default function Calendar() {
               aria-busy="true"
             >
               <Spinner className="w-8 h-8 text-primary" />
-              <p className="text-sm font-medium text-foreground">caricamento calendario</p>
+              <p className="text-sm font-medium text-foreground">
+                {savingBulk ? "Salvataggio..." : "caricamento calendario"}
+              </p>
             </div>
           )}
           {hasPendingChanges && (
@@ -654,6 +671,10 @@ export default function Calendar() {
               baseHourlyPrice={defaultPriceNumber}
               refetch={refetch}
               onPendingChange={() => setPendingVersion((v) => v + 1)}
+              onRangeSaveComplete={() => {
+                setRangeSelection(undefined);
+                setSelectedRangeDatesStr(null);
+              }}
             />
           </div>
         </CardContent>

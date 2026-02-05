@@ -24,7 +24,7 @@ type Props = {
   selectOptions: SelectOption[];
 };
 
-export default function CalendarClient({ teamMembers, selectOptions }: Props) {
+export default function ContactCalendarClient({ teamMembers, selectOptions }: Props) {
   const [selectedOption, setSelectedOption] = useState("");
 
   const option = selectOptions.find(o => o.label === selectedOption);

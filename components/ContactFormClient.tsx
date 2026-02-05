@@ -5,7 +5,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "./ui/card";
 import { ButtonGroup } from "./ui/button-group";
 import { Button } from "./ui/button";
-import { Plus, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { Field, FieldContent, FieldDescription, FieldGroup, FieldLabel, FieldLegend, FieldSet } from "./ui/field";
 import { Textarea } from "./ui/textarea";
 import { Spinner } from "./ui/spinner";
@@ -34,7 +34,6 @@ export default function ContactFormClient() {
   const [message, setMessage] = useState<string>("");
   const [shakeKey, setShakeKey] = useState(0);
   const [counterShakeKey, setCounterShakeKey] = useState(0);
-  const [showUploader, setShowUploader] = useState(false);
   const [removedFileKeys, setRemovedFileKeys] = useState<Set<string>>(new Set());
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 
@@ -253,37 +252,29 @@ export default function ContactFormClient() {
       {/* Footer with buttons*/}
       <CardFooter>
         <ButtonGroup orientation="horizontal" className="flex flex-row gap-4 w-full justify-end">
-          <ButtonGroup>
-            <Button type="button" variant="outline" className="bg-accent dark:bg-sidebar-accent" onClick={() => setShowUploader(!showUploader)}>
-              <Plus className="size-4" />
-              Allega un file
-            </Button>
-          </ButtonGroup>
-          <ButtonGroup>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="inline-flex">
-                  <Button
-                    type="submit"
-                    form="contact-form"
-                    variant="default"
-                    className="group"
-                    disabled={loading || invalid}
-                  >
-                    {loading ? <Spinner /> : (
-                      <>
-                        <Send className="size-4" />
-                        Invia
-                      </>
-                    )}
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{invalid ? "Compila tutti i campi per inviare" : "Invia il messaggio"}</p>
-              </TooltipContent>
-            </Tooltip>
-          </ButtonGroup>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="inline-flex">
+                <Button
+                  type="submit"
+                  form="contact-form"
+                  variant="default"
+                  className="group"
+                  disabled={loading || invalid}
+                >
+                  {loading ? <Spinner /> : (
+                    <>
+                      <Send className="size-4" />
+                      Invia
+                    </>
+                  )}
+                </Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{invalid ? "Compila tutti i campi per inviare" : "Invia il messaggio"}</p>
+            </TooltipContent>
+          </Tooltip>
         </ButtonGroup>
       </CardFooter>
     </Card>

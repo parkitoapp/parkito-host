@@ -1,5 +1,5 @@
 import { SelectOption, TeamMember } from "@/types";
-import CalendarClient from "@/components/CalendarClient";
+import ContactCalendarClient from "@/components/ContactCalendarClient";
 
 export const teamMembers: Record<string, TeamMember> = {
   benedetta: {
@@ -46,7 +46,7 @@ export const selectOptions: SelectOption[] = [
 export default function page() {
   return (
     <div className="w-full max-h-screen mx-auto">
-      <CalendarClient teamMembers={teamMembers} selectOptions={selectOptions} />
+      <ContactCalendarClient teamMembers={teamMembers} selectOptions={selectOptions} />
     </div>
   )
 }

@@ -184,7 +184,7 @@ export function UserProvider({ children, initialUser, initialDriver, initialHost
 
               // User is a host, redirect to dashboard
               // TODO: Temporary redirect to /calendar until home page features are implemented
-              router.push("/calendar")
+              router.push("/")
             }
             break
 

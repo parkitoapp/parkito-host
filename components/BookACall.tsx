@@ -11,14 +11,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import { ExternalLink, Headset, XIcon } from "lucide-react"
+import { ExternalLink, Headset, Lightbulb, XIcon } from "lucide-react"
 import Link from "next/link"
 
 export default function AlertDialogSmallWithMedia() {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="default">Suggerimenti sui prezzi</Button>
+        <Button variant="default"><Lightbulb /> Suggerimenti sui prezzi</Button>
       </AlertDialogTrigger>
 
       <AlertDialogContent size="sm" className="flex flex-col">

@@ -16,53 +16,51 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { availability_id } = body;
+    const body = await request.json().catch(() => ({}));
+    const { availability_id, availability_ids } = body as {
+      availability_id?: number | string;
+      availability_ids?: Array<number | string>;
+    };
 
-    if (!availability_id) {
+    const idsToDelete: Array<number | string> =
+      Array.isArray(availability_ids) && availability_ids.length > 0
+        ? availability_ids
+        : availability_id != null
+          ? [availability_id]
+          : [];
+
+    if (idsToDelete.length === 0) {
       return NextResponse.json(
-        { error: "Missing availability_id" },
+        { error: "Missing availability_id or availability_ids" },
         { status: 400 }
       );
     }
 
-    const res = await fetch(
-      `${SUPABASE_URL}/functions/v1/delete-availability`,
-      {
+    const callDeleteOne = async (id: number | string) => {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/delete-availability`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ availability_id }),
+        body: JSON.stringify({ availability_id: id }),
+      });
+      const text = await res.text();
+      if (!res.ok && res.status !== 404) {
+        let errPayload: { error?: string } = {};
+        try {
+          errPayload = JSON.parse(text);
+        } catch {
+          errPayload = { error: text || "Edge function error" };
+        }
+        throw new Error(errPayload.error ?? "delete-availability failed");
       }
-    );
+      return text;
+    };
 
-    const text = await res.text();
-    if (!res.ok) {
-      // 404 = already deleted or not found; treat as success so bulk save can continue
-      if (res.status === 404) {
-        return NextResponse.json({ success: true, deleted: false });
-      }
-      let errPayload: { error?: string } = {};
-      try {
-        errPayload = JSON.parse(text);
-      } catch {
-        errPayload = { error: text || "Edge function error" };
-      }
-      return NextResponse.json(
-        { error: errPayload.error ?? "delete-availability failed" },
-        { status: res.status }
-      );
-    }
+    await Promise.all(idsToDelete.map((id) => callDeleteOne(id)));
 
-    let data: unknown;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      data = { success: true };
-    }
-    return NextResponse.json(data);
+    return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[API /api/availability/delete]", err);
     const message = err instanceof Error ? err.message : "Internal server error";

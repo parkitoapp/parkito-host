@@ -1,6 +1,9 @@
 import BookACall from "@/components/BookACall";
 import Calendar from "@/components/Calendar";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar1, Euro } from "lucide-react";
+import PriceEditor from "@/components/PriceEditor";
 
 const legendItems = [
 
@@ -28,8 +31,8 @@ export default function page() {
     <div className="">
       <div className="w-full flex flex-row justify-between items-center mb-6">
         <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-bold">Calendario Delle Disponibilità</h1>
-          <p className="text-sm text-gray-300">
+          <h1 className="text-5xl font-bold">Gestisci prezzi e disponibilità del tuo parcheggio</h1>
+          <p className="text-md text-gray-300">
             Gestisci prezzi giornalieri e disponibilità del tuo parcheggio
           </p>
         </div>
@@ -37,31 +40,48 @@ export default function page() {
           <BookACall />
         </div>
       </div>
-      <div className="w-full grid grid-cols-12 gap-4">
-        <div className="col-span-9">
-          <Calendar />
-        </div>
-        <div className="col-span-3">
-          <div className="flex-col gap-2">
-            <Card className="flex flex-col gap-2">
-              <CardContent className="flex flex-col gap-2">
-                <div className="flex flex-col gap-2">
-                  {legendItems.map((item, idx) => (
-                    <div className="flex flex-row items-center gap-2" key={idx}>
-                      <div
-                        className={`w-3 h-3 rounded-full shrink-0 ${item.color} ${item.color === "bg-white" ? "border-2 border-neutral-300" : ""
-                          }`}
-                      />
-                      <p className="text-sm">{item.title}</p>
+      <Tabs defaultValue="price">
+        <TabsList className="w-full">
+          <TabsTrigger value="price">
+            <Euro />
+            Prezzi
+          </TabsTrigger>
+          <TabsTrigger value="calendar">
+            <Calendar1 />
+            Calendario
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="price" className="p-4">
+          <PriceEditor />
+        </TabsContent>
+        <TabsContent value="calendar" className="p-4">
+          <div className="w-full grid grid-cols-12 gap-4">
+            <div className="col-span-9">
+              <Calendar />
+            </div>
+            <div className="col-span-3">
+              <div className="flex-col gap-2">
+                <Card className="flex flex-col gap-2">
+                  <CardContent className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-2">
+                      {legendItems.map((item, idx) => (
+                        <div className="flex flex-row items-center gap-2" key={idx}>
+                          <div
+                            className={`w-3 h-3 rounded-full shrink-0 ${item.color} ${item.color === "bg-white" ? "border-2 border-neutral-300" : ""
+                              }`}
+                          />
+                          <p className="text-sm">{item.title}</p>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
 
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

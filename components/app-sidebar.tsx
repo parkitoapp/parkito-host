@@ -11,6 +11,7 @@ import {
   Images,
   HandHeart,
   Calendar,
+  CalendarRange,
 } from "lucide-react"
 
 import { NavProjects } from "@/components/nav-projects"
@@ -63,14 +64,9 @@ const data = {
   ],
   availability: [
     {
-      name: "Calendario",
+      name: "Prezzi e disponibilità",
       url: "/calendar",
-      icon: Calendar,
-    },
-    {
-      name: "Prezzi",
-      url: "/price",
-      icon: Euro,
+      icon: CalendarRange,
     }
   ],
   secondary: [
@@ -119,8 +115,8 @@ export default function AppSidebar({
       </SidebarHeader>
       <SidebarContent className="relative">
         {/* <NavMain items={data.navMain} /> */}
-        <NavProjects title="Disponibilità&Prezzi" projects={data.availability} />
         <NavProjects title="Home" projects={data.home} />
+        <NavProjects title="Disponibilità&Prezzi" projects={data.availability} />
         <NavProjects title="Parcheggio" projects={data.projects} />
         <NavProjects title="Servizi" projects={data.services} />
         <div className="absolute bottom-0 w-full">
