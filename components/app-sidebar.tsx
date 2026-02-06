@@ -5,12 +5,10 @@ import {
   LifeBuoy,
   ChartLine,
   Map,
-  Euro,
   Send,
   BookMarked,
   Images,
   HandHeart,
-  Calendar,
   CalendarRange,
 } from "lucide-react"
 
@@ -52,7 +50,7 @@ const data = {
       icon: Map,
     },
     {
-      name: "Prenotazioni🚧",
+      name: "Prenotazioni",
       url: "/bookings",
       icon: BookMarked,
     },
@@ -83,7 +81,7 @@ const data = {
   ],
   services: [
     {
-      name: "Servizi🚧",
+      name: "Servizi",
       url: "/services",
       icon: HandHeart
     }
