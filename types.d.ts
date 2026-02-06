@@ -128,6 +128,13 @@ export interface PktAvailability {
 export interface PktReservation {
   id?: string;
   parking_id: string;
+  driver_id: string;
+  start_datetime: Date;
+  end_datetime: Date;
+  total_price: number;
+  reserved_slots: number;
+  is_ended: boolean;
+  is_started: boolean;
   [key: string]: unknown;
 }
 
