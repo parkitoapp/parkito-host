@@ -1,6 +1,6 @@
 "use client"
 
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogMedia, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogMedia, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog'
 import { Button } from './ui/button'
 import { Euro, PencilIcon } from 'lucide-react'
 
@@ -81,7 +81,7 @@ export default function PriceEditor() {
           Potrai modificarlo in qualsiasi momento.
         </CardDescription>
       </CardHeader>
-      <AlertDialog>
+      <AlertDialog onOpenChange={(open) => { if (!open) setPrice(null); }}>
         <AlertDialogTrigger asChild>
           <div className='flex flex-col w-1/3 mx-auto rounded-tr-lg'>
             <Button variant="outline" size="lg" className='h-30 flex-col'>
@@ -118,7 +118,7 @@ export default function PriceEditor() {
                 type="number"
                 inputMode="decimal"
                 style={{ fontSize: '20px' }}
-                className="font-bold placeholder:text-[20px] text-primary dark:text-accent text-center focus:placeholder-transparent"
+                className="font-bold placeholder:text-[20px] text-primary dark:text-accent text-center focus:placeholder-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 placeholder={effectivePrice.toString()}
                 value={price !== null ? price.toString() : ""}
                 onChange={(e) =>
@@ -126,7 +126,7 @@ export default function PriceEditor() {
                 }
               />
               <InputGroupAddon align="inline-end" className="text-primary text-2xl font-bold">
-                <span>| all&apos;ora</span>
+                <span>| ora</span>
               </InputGroupAddon>
             </InputGroup>
 
