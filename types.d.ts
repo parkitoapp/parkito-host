@@ -27,17 +27,55 @@ export interface UserWithDriver {
   host: HostData | null;
 }
 
+export type VehicleType = {
+  1: "Moto";
+  2: "Utilitaria";
+  3: "Berlina";
+  4: "Station Wagon";
+  5: "SUV";
+  6: "Van";
+};
+
+export type ParkType = {
+  1: "Posto auto coperto";
+  2: "Box Auto";
+  3: "Autorimessa";
+  4: "Posto auto scoperto";
+  5: "Silo Meccanizzato";
+};
+
+export type DimensionType = {
+  width: number;
+  height: number;
+  length: number;
+};
+
 export type Parking = {
   id: string;
   address: string;
   city: string;
-  country: string;
-  postal_code: string;
-  latitude: number;
-  longitude: number;
-  created_at: string;
+  zip_code: string;
+  is_available: boolean;
+  vehicle_type: VehicleType;
+  parking_type: ParkType;
+  lat: number;
+  long: number;
+  base_hourly_price: number;
+  media_urls: string[];
+  total_slots: number;
+  acceptsGPL: boolean;
+  inZTL: boolean;
+  activationStatus: "active" | "inactive" | "configured";
+  info_parcheggio_completed: boolean;
+  prezzi_disponibilita_completed: boolean;
+  descrizione_accesso_completed: boolean;
+  galleria_foto_completed: boolean;
+  weight: string | "1000";
+  floors_count: number | 0;
+  dimensions: DimensionType;
+  perks: string[] | [];
+  is_insured: boolean | false;
   /** Base hourly price from pkt_parking; can be overridden by pkt_availability.hourly_price per slot */
-  base_hourly_price?: number | null;
 };
 
 // Calendar & availability

@@ -1,7 +1,8 @@
-import WorkInProgress from '@/components/WorkInProgress'
-
+import BookingsTab from "@/components/BookingsTab";
 export default function BookingsPage() {
   return (
-    <WorkInProgress name='La pagina Prenotazioni' />
+    <div className="flex flex-1 flex-col min-h-[calc(100vh-70px)]">
+      <BookingsTab />
+    </div>
   )
 }

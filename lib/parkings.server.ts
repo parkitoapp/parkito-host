@@ -119,6 +119,7 @@ export async function getParkingFullInfo(
       .select("*")
       .eq("id", idParam)
       .single();
+
     if (parkingRes.error || !parkingRes.data) {
       console.error(
         "Error fetching parking by id (server):",
