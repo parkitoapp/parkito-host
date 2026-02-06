@@ -32,7 +32,7 @@ export default function page() {
       <div className="w-full flex flex-row justify-between items-center mb-6">
         <div className="flex flex-col gap-2">
           <h1 className="text-5xl font-bold">Gestisci prezzi e disponibilità del tuo parcheggio</h1>
-          <p className="text-md text-gray-300">
+          <p className="text-md text-muted-foreground">
             Gestisci prezzi giornalieri e disponibilità del tuo parcheggio
           </p>
         </div>

@@ -51,6 +51,31 @@ export function TeamSwitcher({
 
   const activeTeam = selectedCtx?.selectedParking ?? localTeam ?? teams[0] ?? null
 
+  // #region agent log
+  React.useEffect(() => {
+    fetch("http://127.0.0.1:7242/ingest/85070798-5b27-4ee4-bc65-240a7665c3d5", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sessionId: "debug-session",
+        runId: "initial",
+        hypothesisId: "H3",
+        location: "team-switcher.tsx:render",
+        message: "TeamSwitcher activeTeam vs context",
+        data: {
+          teamsCount: teams.length,
+          firstTeamId: teams[0]?.id ?? null,
+          selectedCtxId: selectedCtx?.selectedParkingId ?? null,
+          selectedCtxParkingId: selectedCtx?.selectedParking?.id ?? null,
+          localTeamId: localTeam?.id ?? null,
+          activeTeamId: activeTeam?.id ?? null,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {})
+  }, [teams, selectedCtx?.selectedParkingId, selectedCtx?.selectedParking, localTeam, activeTeam])
+  // #endregion agent log
+
   React.useEffect(() => {
     if (!activeTeam && teams.length > 0) {
       const first = teams[0]
@@ -59,7 +84,11 @@ export function TeamSwitcher({
     }
   }, [teams, activeTeam, selectedCtx])
 
-  if (!activeTeam) {
+  // Before client mount (interactive=false), show placeholder so we never paint
+  // the wrong parking (SSR has no localStorage and would show teams[0]).
+  const showPlaceholder = !interactive
+
+  if (!activeTeam && !showPlaceholder) {
     return (
       <SidebarMenu>
         <SidebarMenuItem>
@@ -81,7 +110,18 @@ export function TeamSwitcher({
       size="lg"
       className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
     >
-      {teamSwitcherButtonContent(activeTeam)}
+      {showPlaceholder ? (
+        <>
+          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-transparent text-transparent-foreground group-data-[collapsible=icon]:mx-auto">
+            <Image src={"/logo-cropped.webp"} alt="Logo" width={24} height={24} className="rounded-md" />
+          </div>
+          <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
+            <span className="truncate font-medium text-muted-foreground">Caricamento...</span>
+          </div>
+        </>
+      ) : (
+        teamSwitcherButtonContent(activeTeam!)
+      )}
     </SidebarMenuButton>
   )
 

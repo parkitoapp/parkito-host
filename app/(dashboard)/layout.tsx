@@ -3,9 +3,9 @@
 import { useUser } from "@/providers/user-provider"
 import { useParkings } from "@/hooks/use-parkings"
 import { SelectedParkingProvider } from "@/providers/selected-parking-provider"
-import { Spinner } from "@/components/ui/spinner"
+import { GlobalLoading } from "@/components/global-loading"
 import { useRouter, usePathname } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import {
   SidebarInset,
   SidebarProvider,
@@ -20,13 +20,17 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
+  const [mounted, setMounted] = useState(false)
   const { user, driver, host, loading } = useUser()
   const { parkings, refetch, isFetching } = useParkings(host?.id)
   const router = useRouter()
   const pathname = usePathname()
 
+  useEffect(() => setMounted(true), [])
+
   // Client-side protection as backup to server-side proxy
   useEffect(() => {
+    if (!mounted) return
     // If we're not loading and we have no user, we might be in a logout flow
     // UserProvider will handle the redirect via window.location.href for a hard reset
     // but we keep this as a secondary check for router-based navigation if needed.
@@ -41,20 +45,20 @@ export default function DashboardLayout({
     if (!loading && user && !host && pathname !== "/not-a-host") {
       router.push("/not-a-host")
     }
-  }, [user, host, loading, router, pathname])
+  }, [mounted, user, host, loading, router, pathname])
+
+  // Single global loading until client has mounted (avoids hydration mismatch and multiple flashes)
+  if (!mounted) {
+    return <GlobalLoading message="Caricamento..." />
+  }
 
   // Show loading state while checking auth
   // If loading is true OR if we have no user (and not currently on login page)
   if (loading || (!user && pathname !== "/login")) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner className="w-8 h-8" />
-          <p className="text-muted-foreground">
-            {!user ? "Uscita in corso..." : "Caricamento..."}
-          </p>
-        </div>
-      </div>
+      <GlobalLoading
+        message={!user ? "Uscita in corso..." : "Caricamento..."}
+      />
     )
   }
 
@@ -72,14 +76,7 @@ export default function DashboardLayout({
 
   // If we have user/host but are still waiting for driver/host data
   if (!user || !host || !driver) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner className="w-8 h-8" />
-          <p className="text-muted-foreground">Caricamento dati...</p>
-        </div>
-      </div>
-    )
+    return <GlobalLoading message="Caricamento dati..." />
   }
 
   return (

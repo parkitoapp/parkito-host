@@ -10,6 +10,8 @@ import {
 } from "react";
 import type { Parking } from "@/types";
 
+const LAST_PARKING_ID_KEY = "lastParkingId";
+
 interface SelectedParkingContextValue {
   selectedParkingId: string | null;
   setSelectedParkingId: (id: string) => void;
@@ -27,21 +29,63 @@ export function SelectedParkingProvider({
   children: ReactNode;
   parkings: Parking[];
 }) {
-  const [selectedParkingId, setSelectedParkingIdState] = useState<string | null>(null);
+  // Initialize from localStorage so refresh/reopen shows last chosen parking immediately
+  const [selectedParkingId, setSelectedParkingIdState] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    const fromStorage = localStorage.getItem(LAST_PARKING_ID_KEY);
+    // #region agent log
+    fetch("http://127.0.0.1:7242/ingest/85070798-5b27-4ee4-bc65-240a7665c3d5", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sessionId: "debug-session",
+        runId: "initial",
+        hypothesisId: "H1",
+        location: "selected-parking-provider.tsx:init",
+        message: "Initial selectedParkingId from localStorage",
+        data: { fromStorage },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => { });
+    // #endregion agent log
+    return fromStorage;
+  });
 
-  // Sync selected id with first parking when parkings load and none selected
+  // Persist to localStorage whenever user changes parking (e.g. via team-switcher)
   useEffect(() => {
-    if (parkings.length > 0 && selectedParkingId === null) {
-      setSelectedParkingIdState(parkings[0].id);
+    if (selectedParkingId && typeof window !== "undefined") {
+      // Always store as string for consistency
+      localStorage.setItem(LAST_PARKING_ID_KEY, String(selectedParkingId));
     }
-    // If current selection is no longer in list, reset to first
-    if (parkings.length > 0 && selectedParkingId !== null && !parkings.some((p) => p.id === selectedParkingId)) {
-      setSelectedParkingIdState(parkings[0].id);
+  }, [selectedParkingId]);
+
+  // When parkings load: if current selection is missing or invalid, use stored id or first
+  useEffect(() => {
+    if (parkings.length === 0) return;
+    const storedId = typeof window !== "undefined" ? localStorage.getItem(LAST_PARKING_ID_KEY) : null;
+    // Parkings IDs might be numbers at runtime; compare as strings
+    const storedIdValid = !!storedId && parkings.some((p) => String(p.id) === storedId);
+    const currentValid =
+      !!selectedParkingId && parkings.some((p) => String(p.id) === String(selectedParkingId));
+    if (!currentValid) {
+      const fallbackId = parkings[0] ? String(parkings[0].id) : null;
+      const nextId = storedIdValid ? storedId : fallbackId;
+      if (nextId !== null) {
+        // Defer state update to avoid synchronous setState inside effect body
+        queueMicrotask(() => {
+          setSelectedParkingIdState(nextId);
+        });
+      }
     }
   }, [parkings, selectedParkingId]);
 
   const selectedParking = useMemo(
-    () => parkings.find((p) => p.id === selectedParkingId) ?? null,
+    () =>
+      parkings.find(
+        (p) =>
+          selectedParkingId !== null &&
+          String(p.id) === String(selectedParkingId)
+      ) ?? null,
     [parkings, selectedParkingId]
   );
 
