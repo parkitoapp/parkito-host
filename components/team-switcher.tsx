@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { MapPin, ChevronsUpDown, RefreshCw } from "lucide-react"
+import { MapPin, ChevronsUpDown, RefreshCw, Star } from "lucide-react"
 
 import {
   DropdownMenu,
@@ -17,6 +17,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { Button } from "@/components/ui/button"
 import { useSelectedParkingOptional } from "@/providers/selected-parking-provider"
 import { Parking } from "@/types"
 import Image from "next/image"
@@ -50,31 +51,7 @@ export function TeamSwitcher({
   const [localTeam, setLocalTeam] = React.useState<Parking | null>(teams[0] || null)
 
   const activeTeam = selectedCtx?.selectedParking ?? localTeam ?? teams[0] ?? null
-
-  // #region agent log
-  React.useEffect(() => {
-    fetch("http://127.0.0.1:7242/ingest/85070798-5b27-4ee4-bc65-240a7665c3d5", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sessionId: "debug-session",
-        runId: "initial",
-        hypothesisId: "H3",
-        location: "team-switcher.tsx:render",
-        message: "TeamSwitcher activeTeam vs context",
-        data: {
-          teamsCount: teams.length,
-          firstTeamId: teams[0]?.id ?? null,
-          selectedCtxId: selectedCtx?.selectedParkingId ?? null,
-          selectedCtxParkingId: selectedCtx?.selectedParking?.id ?? null,
-          localTeamId: localTeam?.id ?? null,
-          activeTeamId: activeTeam?.id ?? null,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {})
-  }, [teams, selectedCtx?.selectedParkingId, selectedCtx?.selectedParking, localTeam, activeTeam])
-  // #endregion agent log
+  const preferredId = selectedCtx?.preferredParkingId ?? null
 
   React.useEffect(() => {
     if (!activeTeam && teams.length > 0) {
@@ -161,21 +138,57 @@ export function TeamSwitcher({
               </DropdownMenuItem>
             )}
             {onRefresh && <DropdownMenuSeparator />}
-            {teams.map((team, index) => (
-              <DropdownMenuItem
-                key={index}
-                onClick={() => {
-                  if (selectedCtx) selectedCtx.setSelectedParkingId(team.id)
-                  else setLocalTeam(team)
-                }}
-                className="gap-2 p-2"
-              >
-                <div className="flex size-6 items-center justify-center rounded-md border">
-                  <MapPin className="size-3.5 shrink-0" />
-                </div>
-                {team.address}, ID: {team.id}
-              </DropdownMenuItem>
-            ))}
+            {teams.map((team, index) => {
+              const isPreferred =
+                preferredId !== null &&
+                String(preferredId) === String(team.id)
+
+              return (
+                <DropdownMenuItem
+                  key={index}
+                  onClick={() => {
+                    if (selectedCtx) selectedCtx.setSelectedParkingId(team.id)
+                    else setLocalTeam(team)
+                  }}
+                  className="gap-2 p-2"
+                >
+                  <div className="flex size-6 items-center justify-center rounded-md border">
+                    <MapPin className="size-3.5 shrink-0" />
+                  </div>
+                  <span className="flex-1">
+                    {team.address}, ID: {team.id}
+                  </span>
+                  {teams.length > 1 && selectedCtx && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="ml-1"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        e.preventDefault()
+                        selectedCtx.setPreferredParkingId(
+                          isPreferred ? null : String(team.id)
+                        )
+                      }}
+                      aria-label={
+                        isPreferred
+                          ? "Rimuovi parcheggio preferito"
+                          : "Imposta come parcheggio preferito"
+                      }
+                    >
+                      <Star
+                        className={
+                          isPreferred
+                            ? "size-4 text-yellow-400 fill-yellow-400"
+                            : "size-4 text-muted-foreground"
+                        }
+                      />
+                    </Button>
+                  )}
+                </DropdownMenuItem>
+              )
+            })}
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

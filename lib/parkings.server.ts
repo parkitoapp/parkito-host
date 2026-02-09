@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import type {
   DayState,
   Parking,
@@ -146,8 +147,11 @@ export async function getParkingFullInfo(
       availability = (availabilityRes.data ?? []) as PktAvailability[];
     }
 
+    // Use admin client for reservations: RLS on pkt_reservations typically allows
+    // drivers to see only their own rows. Hosts need to see ALL reservations for their parking.
+    const admin = getSupabaseAdmin();
     let reservations: PktReservation[] = [];
-    const reservationsRes = await supabase
+    const reservationsRes = await admin
       .from("pkt_reservations")
       .select("*")
       .eq("parking_id", idParam);
@@ -160,12 +164,88 @@ export async function getParkingFullInfo(
       reservations = (reservationsRes.data ?? []) as PktReservation[];
     }
 
+    // Enrich reservations with driver name/surname using the admin client (bypasses RLS on pkt_driver).
+    if (reservations.length > 0) {
+      // Support both snake_case (driver_id) and camelCase (driverId) from Supabase
+      const rawDriverIds = reservations.map(
+        (r) => (r as Record<string, unknown>).driver_id ?? (r as Record<string, unknown>).driverId
+      ).filter(Boolean);
+      const driverIds = [...new Set(rawDriverIds.map((id) => String(id)))];
+
+      if (driverIds.length > 0) {
+        const { data: drivers, error: driversError } = await admin
+          .from("pkt_driver")
+          .select("id, name, surname")
+          .in("id", driverIds);
+
+        if (driversError) {
+          console.error(
+            "Error fetching drivers (admin) for reservations:",
+            driversError.message
+          );
+        } else {
+          const driverMap = new Map<
+            string,
+            { name: string | null; surname: string | null }
+          >();
+
+          for (const d of drivers ?? []) {
+            const row = d as { id: string | number; name?: string | null; surname?: string | null };
+            const id = String(row.id);
+            driverMap.set(id, {
+              name: row.name ?? null,
+              surname: row.surname ?? null,
+            });
+          }
+
+          reservations = reservations.map((r) => {
+            const rid = String((r as Record<string, unknown>).driver_id ?? (r as Record<string, unknown>).driverId ?? "");
+            return {
+              ...r,
+              driver: rid ? (driverMap.get(rid) ?? null) : null,
+            };
+          }) as PktReservation[];
+        }
+      }
+    }
+
     const days = availabilityToDays(availability, parking);
 
     return { parking, availability, reservations, days };
   } catch (err) {
     console.error("[getParkingFullInfo] id:", parkingId, err);
     throw err;
+  }
+}
+
+/**
+ * Fetch minimal driver info (name, surname) for a given driver_id.
+ * Uses the Supabase admin client (service role) to bypass RLS safely on the server.
+ */
+export async function getDriverInfoById(driverId: string) {
+  if (!driverId) return null;
+
+  try {
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from("pkt_driver")
+      .select("id, name, surname")
+      .eq("id", driverId)
+      .single();
+
+    if (error || !data) {
+      console.error("Error fetching driver by id (admin):", error?.message);
+      return null;
+    }
+
+    return {
+      id: data.id as string,
+      name: (data as { name: string | null }).name ?? null,
+      surname: (data as { surname: string | null }).surname ?? null,
+    };
+  } catch (err) {
+    console.error("[getDriverInfoById] driverId:", driverId, err);
+    return null;
   }
 }
 

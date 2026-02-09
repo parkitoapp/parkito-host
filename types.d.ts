@@ -124,17 +124,23 @@ export interface PktAvailability {
   [key: string]: unknown; // 3 columns skipped for now
 }
 
-/** Row from pkt_reservations (FK parking_id) */
+/** Minimal driver info joined from pkt_driver for display (name/surname) */
+export interface PktReservationDriver {
+  name: string | null;
+  surname: string | null;
+}
+
+/** Row from pkt_reservations (FK parking_id). driver is joined from pkt_driver when fetched server-side. */
 export interface PktReservation {
   id?: string;
   parking_id: string;
   driver_id: string;
+  /** Joined from pkt_driver (name, surname) when loading reservations */
+  driver?: PktReservationDriver | null;
   start_datetime: Date;
   end_datetime: Date;
   total_price: number;
   reserved_slots: number;
-  is_ended: boolean;
-  is_started: boolean;
   [key: string]: unknown;
 }
 

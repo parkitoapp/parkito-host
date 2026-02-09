@@ -654,29 +654,29 @@ export default function Calendar() {
               </Button>
             </div>
           )}
-          <div className="m-4 rounded-md">
-            <AvailabilityEditor
-              open={sheetOpen}
-              onOpenChange={setSheetOpen}
-              selectedDate={
-                selectedDateStr
-                  ? new Date(selectedDateStr + "T12:00:00")
-                  : undefined
-              }
-              selectedDateStr={selectedDateStr}
-              selectedDatesRange={selectedRangeDatesStr}
-              mode={viewMode}
-              parkingId={selectedParkingId}
-              parkingInfo={parkingInfo}
-              baseHourlyPrice={defaultPriceNumber}
-              refetch={refetch}
-              onPendingChange={() => setPendingVersion((v) => v + 1)}
-              onRangeSaveComplete={() => {
-                setRangeSelection(undefined);
-                setSelectedRangeDatesStr(null);
-              }}
-            />
-          </div>
+
+          <AvailabilityEditor
+            open={sheetOpen}
+            onOpenChange={setSheetOpen}
+            selectedDate={
+              selectedDateStr
+                ? new Date(selectedDateStr + "T12:00:00")
+                : undefined
+            }
+            selectedDateStr={selectedDateStr}
+            selectedDatesRange={selectedRangeDatesStr}
+            mode={viewMode}
+            parkingId={selectedParkingId}
+            parkingInfo={parkingInfo}
+            baseHourlyPrice={defaultPriceNumber}
+            refetch={refetch}
+            onPendingChange={() => setPendingVersion((v) => v + 1)}
+            onRangeSaveComplete={() => {
+              setRangeSelection(undefined);
+              setSelectedRangeDatesStr(null);
+            }}
+          />
+
         </CardContent>
       </Card>
     </>
