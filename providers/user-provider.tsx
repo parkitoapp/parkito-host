@@ -94,43 +94,21 @@ export function UserProvider({ children, initialUser, initialDriver, initialHost
     }
   }, [supabase.auth])
 
-  // Sign out and redirect to login
+  // Sign out: clear local state and let the server route
+  // `/auth/logout` clear the Supabase cookies and redirect.
   const signOut = useCallback(async () => {
     setLoading(true)
+    // Clear local client state immediately so UI updates
+    setUser(null)
+    setDriver(null)
+    setHost(null)
+    queryClient.removeQueries({ queryKey: ["parkings"] })
 
-    try {
-      // 1. Call server-side logout to clear cookies (with a short timeout)
-      const controller = new AbortController()
-      const id = setTimeout(() => controller.abort(), 2000)
-      try {
-        await fetch("/auth/logout", {
-          method: "POST",
-          signal: controller.signal,
-        })
-      } catch (e) {
-        console.warn("Server logout failed or timed out:", e)
-      } finally {
-        clearTimeout(id)
-      }
-
-      // 2. Call client-side signOut
-      await supabase.auth.signOut()
-    } catch (e) {
-      console.error("Logout error:", e)
-    } finally {
-      // Always clear local state and queries so we never get stuck
-      setUser(null)
-      setDriver(null)
-      setHost(null)
-      setLoading(false)
-      queryClient.removeQueries({ queryKey: ["parkings"] })
-
-      // Use hard redirect to ensure all client state is reset.
-      if (window.location.pathname !== "/login") {
-        window.location.href = "/login"
-      }
+    // Full-page navigation to server logout handler.
+    if (typeof window !== "undefined") {
+      window.location.href = "/auth/logout"
     }
-  }, [supabase.auth, queryClient])
+  }, [queryClient])
 
   // Refresh user data from Supabase
   const refreshUser = useCallback(async () => {
