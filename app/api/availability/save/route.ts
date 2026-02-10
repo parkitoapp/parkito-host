@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    let {
+    const {
       parking_id,
       dates: datesInput,
       ripetizione,
@@ -76,7 +76,9 @@ export async function POST(request: Request) {
 
     // Persist recurrence info when present: treat "mai" / empty as no recurrence
     const normalizedRecurrence: string | null =
-      typeof recurrence_rule === "string" && recurrence_rule.trim() !== "" && recurrence_rule !== "mai"
+      typeof recurrence_rule === "string" &&
+      recurrence_rule.trim() !== "" &&
+      recurrence_rule !== "mai"
         ? recurrence_rule
         : ripetizione && ripetizione !== "mai"
           ? (ripetizione as string)
@@ -87,7 +89,10 @@ export async function POST(request: Request) {
       payload.recurrence_rule = null;
     }
 
-    if (availabilityType === "TIME_SLOT" || availabilityType === "UNAVAILABLE") {
+    if (
+      availabilityType === "TIME_SLOT" ||
+      availabilityType === "UNAVAILABLE"
+    ) {
       if (startTime && endTime) {
         payload.startTime = startTime;
         payload.endTime = endTime;
@@ -129,7 +134,8 @@ export async function POST(request: Request) {
     return NextResponse.json(data);
   } catch (err) {
     console.error("[API /api/availability/save]", err);
-    const message = err instanceof Error ? err.message : "Internal server error";
+    const message =
+      err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json(
       { error: "Failed to save availability", details: message },
       { status: 500 }

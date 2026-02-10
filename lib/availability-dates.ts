@@ -23,7 +23,9 @@ const ONE_YEAR_MONTHS = 12;
  */
 export function computeDatesFromRipetizione(
   ripetizione: RipetizioneValue,
-  selectedDateStr: string
+  selectedDateStr: string,
+  rangeStart?: string,
+  rangeEnd?: string
 ): string[] {
   const pad = (n: number) => String(n).padStart(2, "0");
   const toDateStr = (d: Date) =>
