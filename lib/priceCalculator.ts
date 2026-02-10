@@ -72,7 +72,7 @@ export function calculateDailyNetPrice(
 export function calculateParkingPrice(
   totalHours: number,
   baseHourlyNet: number,
-  opts = {}
+  opts: { feeFactor?: number } = {}
 ) {
   const feeFactor = opts.feeFactor ?? 1.244;
   const hours = Math.max(0, Number(totalHours) || 0);
