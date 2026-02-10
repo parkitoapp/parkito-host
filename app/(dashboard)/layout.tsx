@@ -52,14 +52,18 @@ export default function DashboardLayout({
     return <GlobalLoading message="Caricamento..." />
   }
 
-  // Show loading state while checking auth
-  // If loading is true OR if we have no user (and not currently on login page)
-  if (loading || (!user && pathname !== "/login")) {
-    return (
-      <GlobalLoading
-        message={!user ? "Uscita in corso..." : "Caricamento..."}
-      />
-    )
+  // Show loading state only when we're actively doing auth work.
+  // When the user is unauthenticated on a dashboard route, we let the
+  // redirect effects (UserProvider + useEffect above) handle navigation
+  // instead of showing an infinite "logout" spinner.
+  if (loading) {
+    return <GlobalLoading message="Caricamento..." />
+  }
+
+  // If there's no user and we're on a dashboard route, return nothing while
+  // the redirect kicks in. This avoids a stuck "Uscita in corso..." state.
+  if (!user && pathname !== "/login") {
+    return null
   }
 
   const getBreadcrumbItems = () => {
