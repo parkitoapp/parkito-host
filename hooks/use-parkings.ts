@@ -14,12 +14,18 @@ export function useParkings(hostId: string | undefined) {
     queryKey: [PARKINGS_QUERY_KEY, hostId],
     queryFn: () => fetchParkingByHostId(hostId!),
     enabled: !!hostId,
+    // Only use server-provided parkings as initial data when we actually
+    // have some. If the array is empty we want to hit the network instead,
+    // otherwise React Query may treat the empty list as "fresh" for a long
+    // time and never refetch (which is what causes the first-login issue).
     initialData:
-      hostId && initialParkings?.length !== undefined
+      hostId && Array.isArray(initialParkings) && initialParkings.length > 0
         ? initialParkings
         : undefined,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    staleTime: 60 * 1000, // keep data briefly "fresh" but allow quick refetches
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    refetchOnMount: "always",
     retry: 2,
   });
 

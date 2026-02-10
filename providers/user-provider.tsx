@@ -103,29 +103,33 @@ export function UserProvider({ children, initialUser, initialDriver, initialHost
       const controller = new AbortController()
       const id = setTimeout(() => controller.abort(), 2000)
       try {
-        await fetch('/auth/logout', {
-          method: 'POST',
-          signal: controller.signal
+        await fetch("/auth/logout", {
+          method: "POST",
+          signal: controller.signal,
         })
       } catch (e) {
-        console.warn('Server logout failed or timed out:', e)
+        console.warn("Server logout failed or timed out:", e)
+      } finally {
+        clearTimeout(id)
       }
-      clearTimeout(id)
+
+      // 2. Call client-side signOut
+      await supabase.auth.signOut()
     } catch (e) {
-      console.error('Logout fetch error:', e)
+      console.error("Logout error:", e)
+    } finally {
+      // Always clear local state and queries so we never get stuck
+      setUser(null)
+      setDriver(null)
+      setHost(null)
+      setLoading(false)
+      queryClient.removeQueries({ queryKey: ["parkings"] })
+
+      // Use hard redirect to ensure all client state is reset.
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login"
+      }
     }
-
-    // 2. Call client-side signOut
-    await supabase.auth.signOut()
-
-    // 3. Clear state and redirect immediately — don't wait for SIGNED_OUT event
-    // (the event may not fire reliably when we trigger signOut ourselves)
-    setUser(null)
-    setDriver(null)
-    setHost(null)
-    setLoading(false)
-    queryClient.removeQueries({ queryKey: ["parkings"] })
-    window.location.href = "/login"
   }, [supabase.auth, queryClient])
 
   // Refresh user data from Supabase

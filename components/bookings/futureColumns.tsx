@@ -34,7 +34,7 @@ export const futureColumns: ColumnDef<PktReservation>[] = [
     accessorKey: "id",
     header: "ID Prenotazione",
     cell: ({ row }) => (
-      <p className="text-md text-muted-foreground ml-6">
+      <p className="text-md text-primary/80 ml-6">
         # {shortenId(row.original.id)}
       </p>
     ),
