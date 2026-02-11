@@ -10,7 +10,6 @@ import type { DriverData, HostData } from "@/types"
 import type { Parking } from "@/types"
 
 interface UserContextType {
-  user: User | null
   driver: DriverData | null
   host: HostData | null
   initialParkings: Parking[]
@@ -251,7 +250,7 @@ export function UserProvider({ children, initialUser, initialDriver, initialHost
   }, [user, host, initialHost, pathname])
 
   return (
-    <UserContext.Provider value={{ user, driver, host, initialParkings, loading, isHost, refreshUser, refreshDriver, signOut, signInWithGoogle, signInWithApple }}>
+    <UserContext.Provider value={{ driver, host, initialParkings, loading, isHost, refreshUser, refreshDriver, signOut, signInWithGoogle, signInWithApple }}>
       {children}
     </UserContext.Provider>
   )

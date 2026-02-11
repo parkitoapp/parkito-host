@@ -1,57 +1,215 @@
 "use client"
 
+import { useRef, useState } from "react"
+import { CreditCard, IdCard, Mail, Phone, Edit } from "lucide-react"
+import { NeonAvatar } from "./NeonAvatar"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "./ui/card"
+import { Button } from "./ui/button"
+import { Input } from "./ui/input"
+import {
+  Field,
+  FieldContent,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from "./ui/field"
+import ImmutableFieldTooltip from "./ImmutableToolTip"
+import { DriverData, HostData } from "@/types"
 
-import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card'
-import { Button } from './ui/button'
-import { useUser } from '@/providers/user-provider'
-import { NeonAvatar } from './NeonAvatar'
-import { Mail, Phone } from 'lucide-react'
-
-
-export default function ProfileSection() {
+export default function ProfileSection({ user, host }: { user: DriverData, host: HostData }) {
   const [mode, setMode] = useState<"view" | "edit">("view")
-  // const [isSaving, setIsSaving] = useState(false)
-  const { user } = useUser()
-  if (!user) return null
+  const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
-  console.log(user)
 
-  const displayName = [user.user_metadata.name, user.user_metadata.surname].filter(Boolean).join(" ") || "Utente Parkito"
-  const initials = [user.user_metadata.name, user.user_metadata.surname].filter(Boolean).map(n => n?.[0]).join("") || "PK"
+  const displayName =
+    [user.name, user.surname]
+      .filter(Boolean)
+      .join(" ") || "Utente Parkito"
+  const initials =
+    [user.name, user.surname]
+      .filter(Boolean)
+      .map((n) => n?.[0])
+      .join("") || "PK"
 
+  console.log("User:", user)
+  console.log("Host:", host)
+
+  if (mode === "view") {
+    return (
+      <Card className="flex flex-col items-center justify-between w-full max-w-3xl mx-auto">
+
+        <div className="flex flex-row items-center gap-4 w-full px-4 py-3">
+          <CardHeader className="flex flex-row items-center justify-center min-w-[96px]">
+            <NeonAvatar
+              seed={user.id}
+              src={previewImage ?? user.image}
+              alt={displayName}
+              initials={initials}
+              className="size-20"
+              fallbackClassName="text-2xl w-full size-full"
+            />
+          </CardHeader>
+          <CardContent className="w-full flex flex-col gap-1 items-start justify-center">
+            <CardTitle className="w-full text-lg">{displayName}</CardTitle>
+            <CardDescription className="flex items-center gap-2 text-md w-full">
+              <Mail className="size-4" /> {user.email}
+            </CardDescription>
+            <CardDescription className="flex items-center gap-2 text-md w-full">
+              <Phone className="size-4" /> {user.phone ?? "Telefono non impostato"}
+            </CardDescription>
+            <CardDescription className="flex items-center gap-2 text-md w-full">
+              <CreditCard className="size-4" /> {host?.iban ?? "IBAN non impostato"}
+            </CardDescription>
+            <CardDescription className="flex items-center gap-2 text-md w-full">
+              <IdCard className="size-4" /> {user.TIN ?? "Codice Fiscale non impostato"}
+            </CardDescription>
+          </CardContent>
+          <CardFooter className="pr-4">
+            <Button variant="outline" size="sm" onClick={() => setMode("edit")}>
+              Modifica profilo
+            </Button>
+          </CardFooter>
+        </div>
+        <p className="text-md text-muted-foreground">Host Parkito dal: {new Date(user.created_at ?? "").toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit", year: "numeric" })}</p>
+      </Card>
+    )
+  }
 
   return (
-    mode === "view" ? <Card className='flex flex-row items-center justify-evenly w-[60%] mx-auto'>
-      <div className='flex flex-row items-center justify-center gap-4 w-full'>
-        <CardHeader className='flex flex-row min-w-[40%] md:min-w-[15%]'>
-          <NeonAvatar
-            seed={user.id}
-            src={user.user_metadata.avatar_url}
-            alt={displayName}
-            initials={initials}
-            className='size-24'
-            fallbackClassName='text-2xl w-full size-full'
-          />
-        </CardHeader>
-        <CardContent className="w-full flex flex-col gap-2 items-center justify-start">
-          <CardTitle className='w-full'>{displayName}</CardTitle>
-          <CardDescription className="flex items-center gap-2 text-md w-full"><Mail className="size-4" /> {user.email}</CardDescription>
-          <CardDescription className="flex items-center gap-2 text-md w-full"><Phone className="size-4" /> {user.user_metadata.phone}</CardDescription>
-        </CardContent>
-      </div>
-      <CardFooter className='justify-end'>
-        <Button variant="outline" onClick={() => setMode("edit")}>Modifica</Button>
+    <Card className="w-full max-w-3xl mx-auto">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <NeonAvatar
+              seed={user.id}
+              src={previewImage ?? user.image}
+              alt={displayName}
+              initials={initials}
+              className="size-16"
+              fallbackClassName="text-xl w-full size-full"
+            />
+            <Button
+              type="button"
+              size="icon-lg"
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute -bottom-1 -right-2 size-8 rounded-full"
+              aria-label="Cambia immagine profilo"
+            >
+              <Edit className="size-4" />
+            </Button>
+            <Input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0]
+                if (!file) return
+                const url = URL.createObjectURL(file)
+                setPreviewImage(url)
+                // TODO: connect to edge function to upload & persist avatar
+              }}
+            />
+          </div>
+          <div className="flex flex-col">
+            <CardTitle className="text-base">Modifica profilo</CardTitle>
+            <CardDescription className="text-md">
+              Aggiorna i tuoi dati personali e di fatturazione.
+            </CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-6 pb-6">
+        <FieldSet>
+          <FieldLegend>Dati personali</FieldLegend>
+          <FieldGroup>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Field>
+                <FieldLabel className="flex items-center">
+                  Nome
+                  <ImmutableFieldTooltip fieldLabel="Nome" />
+                </FieldLabel>
+                <FieldContent>
+                  <Input defaultValue={user.name ?? ""} disabled readOnly />
+                </FieldContent>
+              </Field>
+              <Field>
+                <FieldLabel className="flex items-center">
+                  Cognome
+                  <ImmutableFieldTooltip fieldLabel="Cognome" />
+                </FieldLabel>
+                <FieldContent>
+                  <Input defaultValue={user.surname ?? ""} disabled readOnly />
+                </FieldContent>
+              </Field>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Field>
+                <FieldLabel>Telefono</FieldLabel>
+                <FieldContent>
+                  <Input
+                    defaultValue={user.phone ?? ""}
+                    placeholder="+39 333 123 4567"
+                  />
+                </FieldContent>
+              </Field>
+              <Field>
+                <FieldLabel className="flex items-center">
+                  Codice Fiscale / TIN
+                  <ImmutableFieldTooltip fieldLabel="Codice Fiscale / TIN" />
+                </FieldLabel>
+                <FieldContent>
+                  <Input
+                    defaultValue={user.TIN}
+                    placeholder="ABCDEF12G34H567I"
+                    disabled
+                    readOnly
+                  />
+                </FieldContent>
+              </Field>
+            </div>
+          </FieldGroup>
+        </FieldSet>
+
+        <FieldSet>
+          <FieldLegend>Dati pagamento</FieldLegend>
+          <FieldGroup>
+            <Field>
+              <FieldLabel>IBAN</FieldLabel>
+              <FieldContent>
+                <Input
+                  defaultValue={host?.iban ?? ""}
+                  placeholder="IT00 A000 0000 0000 0000 0000 000"
+                />
+              </FieldContent>
+            </Field>
+          </FieldGroup>
+        </FieldSet>
+      </CardContent>
+      <CardFooter className="flex justify-end">
+        <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setMode("view")}
+          >
+            Annulla
+          </Button>
+          <Button size="sm" disabled>
+            Salva
+          </Button>
+        </div>
       </CardFooter>
-
     </Card>
-      : <Card className='flex flex-row items-center justify-between w-[80%] mx-auto'>
-        <CardHeader>
-
-        </CardHeader>
-        <CardContent>
-          <CardTitle>Dati personali</CardTitle>
-        </CardContent>
-      </Card>
   )
 }

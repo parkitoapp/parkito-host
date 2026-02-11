@@ -68,7 +68,7 @@ export default function ParkingMarker({
       ref={markerRef}
       className="flex items-center justify-center transform -translate-y-1/2"
     >
-      <ParkingCircleIcon className="size-6 stroke-white border-none fill-primary" />
+      <ParkingCircleIcon className="size-6 stroke-primary-foreground border-none fill-primary" />
     </div>
   );
 }

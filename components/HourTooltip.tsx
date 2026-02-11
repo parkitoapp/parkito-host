@@ -82,17 +82,17 @@ export function HourTooltip({
       <div
         style={tooltipStyle}
         className={[
-          "pointer-events-none absolute -top-9 h-8 rounded-lg bg-[#0D1C73]",
+          "pointer-events-none absolute -top-9 h-8 rounded-lg bg-primary",
           "flex items-center justify-center z-10",
           "transition-all duration-150 origin-bottom",
           isSliding ? "opacity-100 scale-100" : "opacity-0 scale-90",
         ].join(" ")}
         aria-hidden="true"
       >
-        <span className="text-white text-[14px] font-bold">
+        <span className="text-primary-foreground text-[14px] font-bold">
           {formatValue(clampedValue)}
         </span>
-        <div className="absolute -bottom-2 h-0 w-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-[#0D1C73]" />
+        <div className="absolute -bottom-2 h-0 w-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-primary" />
       </div>
 
       <Slider
@@ -123,3 +123,4 @@ export function HourTooltip({
   );
 }
 
+const burgundyPrimary = "oklch(0.38 0.1523 18.6219)";

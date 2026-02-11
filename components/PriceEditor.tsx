@@ -81,8 +81,8 @@ export default function PriceEditor() {
           Potrai modificarlo in qualsiasi momento.
         </CardDescription>
       </CardHeader>
-      <AlertDialog onOpenChange={(open) => { if (!open) setPrice(null); }}>
-        <AlertDialogTrigger asChild>
+      <AlertDialog onOpenChange={(open) => { if (!open) setPrice(null); }} >
+        <AlertDialogTrigger asChild aria-label="Scegli il tuo prezzo orario" aria-roledescription='Pulsante per modificare il prezzo orario'>
           <div className='flex flex-col w-1/3 mx-auto rounded-tr-lg'>
             <Button variant="outline" size="lg" className='h-30 flex-col'>
               <div className='flex flex-row items-center justify-between w-full'>
@@ -90,7 +90,7 @@ export default function PriceEditor() {
                 <PencilIcon className='size-6' />
               </div>
               <div className="flex flex-row items-center justify-center w-full">
-                <p className='flex flex-row items-center w-full text-primary dark:text-accent text-4xl'>
+                <p className='flex flex-row items-center w-full text-primary text-4xl'>
                   <Euro className='size-8' />{effectivePrice}
                 </p>
               </div>

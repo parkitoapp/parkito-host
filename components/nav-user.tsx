@@ -32,7 +32,7 @@ const navUserTriggerContent = (user: DriverData) => {
     <>
       <NeonAvatar
         seed={user.id}
-        src={user.avatar_url}
+        src={user.image}
         alt={displayName}
         initials={initials}
       />
@@ -95,7 +95,7 @@ export function NavUser({
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                   <NeonAvatar
                     seed={user.id}
-                    src={user.avatar_url}
+                    src={user.image}
                     alt={displayName}
                     initials={initials}
                   />

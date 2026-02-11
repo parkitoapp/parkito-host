@@ -40,7 +40,7 @@ export function LoginForm({
 
   const router = useRouter();
   const supabase = getSupabaseBrowserClient();
-  const { user, loading: authLoading } = useUser();
+  const { driver, loading: authLoading } = useUser();
   const [email, setEmail] = useState<string>("")
   const [password, setPassword] = useState<string>("")
   const [showPassword, setShowPassword] = useState<boolean>(false)
@@ -70,10 +70,10 @@ export function LoginForm({
   // Redirect to dashboard if user is already logged in
   // Middleware handles protection, but this provides immediate UX feedback
   useEffect(() => {
-    if (user) {
+    if (driver) {
       router.push("/");
     }
-  }, [user, router]);
+  }, [driver, router]);
 
   // Auto-clear shaking after animation completes (500ms)
   useEffect(() => {
@@ -115,7 +115,7 @@ export function LoginForm({
 
 
   // Show loading state while checking auth (e.g., after OAuth redirect)
-  if (checkingAuth || authLoading || user) {
+  if (checkingAuth || authLoading || driver) {
     return (
       <div className={cn("flex flex-col gap-6 items-center justify-center", className)} {...props}>
         <Card className="w-full">

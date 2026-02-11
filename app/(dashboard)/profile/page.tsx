@@ -1,6 +1,8 @@
-import ProfileSection from "@/components/ProfileSection"
+
+import ProfileClient from "@/components/ProfileClient"
 
 export default function ProfilePage() {
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-4">
@@ -9,7 +11,7 @@ export default function ProfilePage() {
           <p className="text-muted-foreground">Gestisci i tuoi dati personali</p>
         </div>
       </div>
-      <ProfileSection />
+      <ProfileClient />
     </div>
   )
 }

@@ -7,7 +7,9 @@ export interface DriverData {
   surname: string | null;
   email: string | null;
   phone: string | null;
-  avatar_url: string | null;
+  image: string | null;
+  TIN: string;
+  veriff_status: string;
   created_at: string | null;
   // Add more fields as needed from your pkt_driver table
 }
@@ -17,6 +19,8 @@ export interface HostData {
   id: string;
   driver_id: string;
   created_at: string | null;
+  iban: string;
+  stripe_id: string;
   // Add more fields as needed from your pkt_host table
 }
 

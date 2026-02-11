@@ -72,7 +72,7 @@ export function DataTable<TData, TValue>({
       </div> */}
       <div className="border rounded-md overflow-hidden flex-1 w-full">
         <Table>
-          <TableHeader className="bg-accent dark:bg-accent/10 ">
+          <TableHeader className="bg-accent dark:bg-accent/30 ">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="">
                 {headerGroup.headers.map((header) => {
@@ -84,7 +84,7 @@ export function DataTable<TData, TValue>({
                       key={header.id}
                       className={cn(
                         canSort && "cursor-pointer select-none",
-                        "align-middle py-4 text-primary dark:text-primary-foreground"
+                        "align-middle py-4 text-foreground"
                       )}
                       onClick={
                         canSort ? header.column.getToggleSortingHandler() : undefined
@@ -99,7 +99,7 @@ export function DataTable<TData, TValue>({
                           )}
                         {canSort && (
                           <span className="text-muted-foreground shrink-0">
-                            {sorted === "asc" ? <ArrowUp className="size-4 text-primary dark:text-primary-foreground" /> : <ArrowDown className="size-4 text-primary dark:text-primary-foreground" />}
+                            {sorted === "asc" ? <ArrowUp className="size-4 text-foreground" /> : <ArrowDown className="size-4 text-foreground" />}
                           </span>
                         )}
                       </span>

@@ -160,8 +160,8 @@ export function getStatusBadge(status?: string | null): {
 const NEON_AVATAR_STYLES = [
   {
     bg: "bg-pink-300 dark:bg-pink-900/30",
-    text: "text-pink-50 dark:text-pink-50",
-    border: "border-pink-500 dark:border-pink-400",
+    text: "text-pink-900 dark:text-pink-50",
+    border: "border-pink-900 dark:border-pink-400",
   },
   {
     bg: "bg-lime-300 dark:bg-lime-900/30",

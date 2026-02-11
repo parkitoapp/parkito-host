@@ -21,7 +21,7 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const [mounted, setMounted] = useState(false)
-  const { user, driver, host, loading } = useUser()
+  const { driver, host, loading } = useUser()
   const { parkings, refetch, isFetching } = useParkings(host?.id)
   const router = useRouter()
   const pathname = usePathname()
@@ -34,7 +34,7 @@ export default function DashboardLayout({
     // If we're not loading and we have no user, we might be in a logout flow
     // UserProvider will handle the redirect via window.location.href for a hard reset
     // but we keep this as a secondary check for router-based navigation if needed.
-    if (!loading && !user && pathname !== "/login") {
+    if (!loading && !driver && pathname !== "/login") {
       // Small delay to allow UserProvider's hard redirect to fire first
       const timer = setTimeout(() => {
         router.push("/login")
@@ -42,10 +42,10 @@ export default function DashboardLayout({
       return () => clearTimeout(timer)
     }
 
-    if (!loading && user && !host && pathname !== "/not-a-host") {
+    if (!loading && driver && !host && pathname !== "/not-a-host") {
       router.push("/not-a-host")
     }
-  }, [mounted, user, host, loading, router, pathname])
+  }, [mounted, driver, host, loading, router, pathname])
 
   // Single global loading until client has mounted (avoids hydration mismatch and multiple flashes)
   if (!mounted) {
@@ -60,9 +60,9 @@ export default function DashboardLayout({
     return <GlobalLoading message="Caricamento..." />
   }
 
-  // If there's no user and we're on a dashboard route, return nothing while
+  // If there's no driver and we're on a dashboard route, return nothing while
   // the redirect kicks in. This avoids a stuck "Uscita in corso..." state.
-  if (!user && pathname !== "/login") {
+  if (!driver && pathname !== "/login") {
     return null
   }
 
@@ -78,8 +78,8 @@ export default function DashboardLayout({
     })
   }
 
-  // If we have user/host but are still waiting for driver/host data
-  if (!user || !host || !driver) {
+  // If we have driver/host but are still waiting for data
+  if (!driver || !host) {
     return <GlobalLoading message="Caricamento dati..." />
   }
 

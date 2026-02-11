@@ -127,7 +127,7 @@ export default function ParkingInfoView({
                     alt={selectedVehicle.label}
                     width={220}
                     height={220}
-                    className="rounded-md bg-background object-contain"
+                    className="rounded-md object-contain"
                   />
                   <div className="flex flex-col gap-1 items-center justify-center w-full">
                     <span className="text-xl font-semibold">

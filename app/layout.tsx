@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Inter_Tight } from "next/font/google"
 import "./globals.css";
 import Link from "next/link";
+import Script from "next/script";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { PaletteProvider } from "@/providers/palette-provider";
 import { UserProvider } from "@/providers/user-provider";
 import { QueryProvider } from "@/providers/query-provider";
 import { Toaster } from "sonner";
@@ -54,6 +56,12 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Apply saved palette class ASAP to avoid flash of default palette */}
+        <Script id="parkito-init-palette" strategy="beforeInteractive">
+          {`(function(){try{var key='parkito-theme-palette';var known=['default','sage-green','amethyst-haze','caffeine','amber','burgundy'];var stored=localStorage.getItem(key);if(stored&&known.indexOf(stored)!==-1&&stored!=='default'){document.documentElement.classList.add('theme-'+stored);}}catch(e){}})();`}
+        </Script>
+      </head>
       <body
         className={`${interTight.className} antialiased`}
       >
@@ -69,14 +77,21 @@ export default async function RootLayout({
           defaultTheme="system"
           enableSystem
         >
-          <QueryProvider>
-            <UserProvider initialUser={user} initialDriver={initialDriver} initialHost={initialHost} initialParkings={initialParkings}>
-              <main id="main-content">
-                {children}
-              </main>
-              <Toaster richColors position="top-center" expand={false} />
-            </UserProvider>
-          </QueryProvider>
+          <PaletteProvider>
+            <QueryProvider>
+              <UserProvider
+                initialUser={user}
+                initialDriver={initialDriver}
+                initialHost={initialHost}
+                initialParkings={initialParkings}
+              >
+                <main id="main-content">
+                  {children}
+                </main>
+                <Toaster richColors position="top-center" expand={false} />
+              </UserProvider>
+            </QueryProvider>
+          </PaletteProvider>
         </ThemeProvider>
       </body>
     </html>
