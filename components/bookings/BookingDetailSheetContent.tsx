@@ -20,18 +20,17 @@ import * as React from "react"
 import type { PktReservation } from "@/types"
 import { Copy, Check, Clock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   getGuestName,
   getInitials,
   getStatusBadge,
-  getNeonAvatarClasses,
   formatCreatedAt,
   formatDurationLong,
   formatCurrency,
 } from "@/lib/bookings-table-utils"
 import { cn } from "@/lib/utils"
 import { Button } from "../ui/button"
+import { NeonAvatar } from "@/components/NeonAvatar"
 
 type ReservationWithMeta = PktReservation & {
   status?: string
@@ -58,11 +57,6 @@ export function BookingDetailSheetContent({
   const { variant: statusVariant, className: statusClassName } = getStatusBadge(row.status)
   const guestName = getGuestName(booking)
   const initials = getInitials(guestName)
-  const neon = getNeonAvatarClasses(guestName)
-  const avatarClasses = neon
-    ? `text-sm font-semibold uppercase ${neon.avatar}`
-    : "text-sm font-semibold uppercase bg-muted"
-  const borderClasses = neon?.border ?? ""
 
   const startDate = row.start_datetime
   const endDate = row.end_datetime
@@ -161,9 +155,13 @@ export function BookingDetailSheetContent({
           Informazioni ospite
         </p>
         <div className="flex items-center gap-3">
-          <Avatar className={cn("size-10 shrink-0 border-2", borderClasses)}>
-            <AvatarFallback className={avatarClasses}>{initials}</AvatarFallback>
-          </Avatar>
+          <NeonAvatar
+            seed={guestName}
+            initials={initials}
+            alt={guestName}
+            className="size-10 shrink-0 border-2"
+            fallbackClassName="text-sm font-semibold uppercase"
+          />
           <div className="min-w-0 flex-1 space-y-0.5">
             <p className="font-semibold text-foreground truncate">{guestName}</p>
           </div>

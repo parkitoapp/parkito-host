@@ -4,12 +4,12 @@ import * as React from "react"
 import {
   LifeBuoy,
   ChartLine,
-  Map,
   Send,
   BookMarked,
   Images,
   HandHeart,
   CalendarRange,
+  ParkingCircle,
 } from "lucide-react"
 
 import { NavProjects } from "@/components/nav-projects"
@@ -38,16 +38,16 @@ function useMounted() {
 const data = {
 
   home: [{
-    name: "Analitica🚧",
+    name: "Analitica",
     url: "/",
     icon: ChartLine,
   }],
 
   projects: [
     {
-      name: "Informazioni🚧",
+      name: "Informazioni ",
       url: "/parking-info",
-      icon: Map,
+      icon: ParkingCircle,
     },
     {
       name: "Prenotazioni",
@@ -55,7 +55,7 @@ const data = {
       icon: BookMarked,
     },
     {
-      name: "Galleria🚧",
+      name: "Galleria",
       url: "/gallery",
       icon: Images,
     }
@@ -92,7 +92,7 @@ export default function AppSidebar({
   parkings,
   user,
   onRefreshParkings,
-  isRefreshingParkings = false,
+  isRefreshingParkings: _isRefreshingParkings,
   ...props
 }: {
   parkings: Parking[]
@@ -101,14 +101,33 @@ export default function AppSidebar({
   isRefreshingParkings?: boolean
 } & React.ComponentProps<typeof Sidebar>) {
   const mounted = useMounted()
+
+  const [isRefreshingLocal, setIsRefreshingLocal] = React.useState(false)
+
+  const handleRefresh = React.useCallback(async () => {
+    if (!onRefreshParkings || isRefreshingLocal) return
+    try {
+      setIsRefreshingLocal(true)
+      // Support both sync and async handlers
+      const result = onRefreshParkings()
+      if (typeof result === "object" && result !== null && "then" in result) {
+        await (result as Promise<unknown>)
+      }
+    } catch (error) {
+      console.error("Errore durante l'aggiornamento dei parcheggi:", error)
+    } finally {
+      setIsRefreshingLocal(false)
+    }
+  }, [onRefreshParkings, isRefreshingLocal])
+
   return (
     <Sidebar variant="floating" collapsible="icon" {...props}>
       <SidebarHeader>
         <TeamSwitcher
           teams={parkings}
           interactive={mounted}
-          onRefresh={onRefreshParkings}
-          isRefreshing={isRefreshingParkings}
+          onRefresh={handleRefresh}
+          isRefreshing={isRefreshingLocal}
         />
       </SidebarHeader>
       <SidebarContent className="relative">

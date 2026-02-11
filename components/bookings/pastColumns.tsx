@@ -16,7 +16,6 @@ import type { ColumnDef } from "@tanstack/react-table"
 
 import type { PktReservation } from "@/types"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   shortenId,
   formatDateAndTime,
@@ -25,16 +24,16 @@ import {
   getGuestName,
   getInitials,
   getStatusBadge,
-  getNeonAvatarClasses,
   getDurationMs,
 } from "@/lib/bookings-table-utils"
+import { NeonAvatar } from "@/components/NeonAvatar"
 
 export const pastColumns: ColumnDef<PktReservation>[] = [
   {
     accessorKey: "id",
     header: "ID Prenotazione",
     cell: ({ row }) => (
-      <p className="text-md text-muted-foreground ml-6">
+      <p className="text-md text-primary/80 ml-6">
         # {shortenId(row.original.id)}
       </p>
     ),
@@ -45,18 +44,14 @@ export const pastColumns: ColumnDef<PktReservation>[] = [
     cell: ({ row }) => {
       const value = getGuestName(row.original)
       const initials = getInitials(value)
-      const neon = getNeonAvatarClasses(value)
-      const avatarClasses = neon
-        ? `text-xs font-semibold uppercase ${neon.avatar}`
-        : "text-xs font-semibold uppercase"
-      const borderClasses = neon?.border ?? ""
       return (
         <div className="flex items-center gap-2">
-          <Avatar className={`size-8 ${borderClasses} border`}>
-            <AvatarFallback className={avatarClasses}>
-              {initials}
-            </AvatarFallback>
-          </Avatar>
+          <NeonAvatar
+            seed={value}
+            alt={value}
+            initials={initials}
+            fallbackClassName="text-xs font-semibold uppercase"
+          />
           <p className="text-md">{value}</p>
         </div>
       )

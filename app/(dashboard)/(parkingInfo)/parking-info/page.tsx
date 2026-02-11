@@ -1,9 +1,13 @@
-import WorkInProgress from '@/components/WorkInProgress'
 
 
+
+
+import ParkingInfoClient from "@/components/ParkingInfoClient"
 
 export default function ParkingInfoPage() {
   return (
-    <WorkInProgress name='La pagina Informazioni Parcheggio' />
+    <div className="flex flex-1 flex-col">
+      <ParkingInfoClient />
+    </div>
   )
 }

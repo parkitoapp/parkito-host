@@ -7,11 +7,6 @@ import {
 import { useUser } from "@/providers/user-provider"
 
 import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -28,16 +23,19 @@ import {
 import { DriverData } from "@/types"
 import ThemeSwitch from "./ThemeSwitch"
 import Link from "next/link"
+import { NeonAvatar } from "@/components/NeonAvatar"
 
 const navUserTriggerContent = (user: DriverData) => {
   const displayName = [user.name, user.surname].filter(Boolean).join(" ") || "Utente Parkito"
   const initials = [user.name, user.surname].filter(Boolean).map(n => n?.[0]).join("") || "PK"
   return (
     <>
-      <Avatar className="h-8 w-8 rounded-lg">
-        <AvatarImage src={user.avatar_url || ""} alt={displayName} />
-        <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
-      </Avatar>
+      <NeonAvatar
+        seed={user.id}
+        src={user.avatar_url}
+        alt={displayName}
+        initials={initials}
+      />
       <div className="grid flex-1 text-left text-sm leading-tight">
         <span className="truncate font-medium">{displayName}</span>
         <span className="truncate text-xs">{user.email || ""}</span>
@@ -93,12 +91,14 @@ export function NavUser({
             sideOffset={4}
           >
             <DropdownMenuLabel className="p-0 font-normal hover:bg-sidebar-accent rounded-sm">
-              <Link href="/account">
+              <Link href="/profile">
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                  <Avatar className="h-10 w-10 rounded-lg">
-                    <AvatarImage src={user.avatar_url || ""} alt={displayName} />
-                    <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
-                  </Avatar>
+                  <NeonAvatar
+                    seed={user.id}
+                    src={user.avatar_url}
+                    alt={displayName}
+                    initials={initials}
+                  />
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">{displayName}</span>
                     <span className="truncate text-xs">{user.email || ""}</span>

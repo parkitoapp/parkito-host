@@ -20,6 +20,13 @@ export interface HostData {
   // Add more fields as needed from your pkt_host table
 }
 
+export type ErrorType = {
+  title: string;
+  message: string;
+  onClick?: () => void;
+  src?: string;
+};
+
 export interface UserWithDriver {
   id: string;
   email: string | null;
@@ -34,6 +41,13 @@ export type VehicleType = {
   4: "Station Wagon";
   5: "SUV";
   6: "Van";
+};
+
+export type vehicleOptionsType = {
+  label: string;
+  dimension: { length: number; width: number; height: number };
+  image: ImageSourcePropType;
+  id: number;
 };
 
 export type ParkType = {

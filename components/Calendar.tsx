@@ -390,7 +390,7 @@ export default function Calendar() {
             setRangeSelection(undefined);
             setSelectedRangeDatesStr(null);
           }}
-          className="border bg-muted px-1 py-1 text-xs"
+          className="border bg-muted px-1 my-4 py-1 text-xs"
         >
           <ToggleGroupItem
             value="single"
