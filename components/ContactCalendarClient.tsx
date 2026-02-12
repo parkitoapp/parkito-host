@@ -41,8 +41,8 @@ export default function ContactCalendarClient({ teamMembers, selectOptions }: Pr
       </div>
 
       <div className="space-y-6">
-        <Select value={selectedOption} onValueChange={setSelectedOption}>
-          <SelectTrigger className="w-full h-12 text-base">
+        <Select value={selectedOption} onValueChange={setSelectedOption} aria-label="Seleziona il problema">
+          <SelectTrigger className="w-full h-12 text-base" id='contact-select' aria-label="Seleziona il problema">
             <SelectValue placeholder="Cliccami" />
           </SelectTrigger>
           <SelectContent position="popper" align="center" className="bg-popover border border-border z-50">

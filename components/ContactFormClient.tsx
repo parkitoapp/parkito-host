@@ -128,8 +128,8 @@ export default function ContactFormClient() {
 
       {/* Content with select and form*/}
       <CardContent>
-        <Select value={selectedOption} onValueChange={setSelectedOption}>
-          <SelectTrigger className="h-12 text-base w-[300px]">
+        <Select value={selectedOption} onValueChange={setSelectedOption} aria-label="Seleziona il problema">
+          <SelectTrigger className="h-12 text-base w-[300px]" id='contact-select' aria-label="Seleziona il problema">
             <SelectValue placeholder="Scegli un'opzione" />
           </SelectTrigger>
           <SelectContent position="popper" align="center" className="bg-popover border border-border z-50">
@@ -152,11 +152,13 @@ export default function ContactFormClient() {
                   <FieldLabel htmlFor="message">Cosa vuoi condividere?</FieldLabel>
                   <FieldContent>
                     <Textarea
+                      aria-label="Messaggio"
+                      aria-required="true"
+                      id="message"
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       onKeyDown={handleMessageKeyDown}
                       required
-                      id="message"
                       name="message"
                       placeholder="Scrivi un messaggio"
                       className={cn(
@@ -187,6 +189,9 @@ export default function ContactFormClient() {
                   <FieldContent>
                     <div className="w-md mx-auto flex flex-col gap-4">
                       <UploadDropzone
+                        aria-label="Allega un file"
+                        aria-required="true"
+                        id="files"
                         control={control}
                         accept="image/*,video/*"
                         description={{

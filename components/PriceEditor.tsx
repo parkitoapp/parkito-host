@@ -82,9 +82,15 @@ export default function PriceEditor() {
         </CardDescription>
       </CardHeader>
       <AlertDialog onOpenChange={(open) => { if (!open) setPrice(null); }} >
-        <AlertDialogTrigger asChild aria-label="Scegli il tuo prezzo orario" aria-roledescription='Pulsante per modificare il prezzo orario'>
-          <div className='flex flex-col w-1/3 mx-auto rounded-tr-lg'>
-            <Button variant="outline" size="lg" className='h-30 flex-col'>
+        <div className='flex flex-col w-1/3 mx-auto rounded-tr-lg'>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="outline"
+              size="lg"
+              className='h-30 flex-col'
+              aria-label="Scegli il tuo prezzo orario"
+              aria-roledescription="Pulsante per modificare il prezzo orario"
+            >
               <div className='flex flex-row items-center justify-between w-full'>
                 <span className="capitalize text-2xl">All&apos;ora</span>
                 <PencilIcon className='size-6' />
@@ -94,11 +100,10 @@ export default function PriceEditor() {
                   <Euro className='size-8' />{effectivePrice}
                 </p>
               </div>
-
             </Button>
-            <Label className='text-sm text-muted-foreground mt-2'>Mostreremo il prezzo al driver maggiorato dei costi di piattaforma. In questo modo riceverai sempre la somma indicata sopra. </Label>
-          </div>
-        </AlertDialogTrigger>
+          </AlertDialogTrigger>
+          <Label className='text-sm text-muted-foreground mt-2'>Mostreremo il prezzo al driver maggiorato dei costi di piattaforma. In questo modo riceverai sempre la somma indicata sopra. </Label>
+        </div>
         <AlertDialogContent className='flex flex-col w-full'>
           <AlertDialogHeader className='flex flex-col items-center justify-center w-full mb-4'>
             <AlertDialogMedia className='flex flex-col mx-auto -mb-2'>

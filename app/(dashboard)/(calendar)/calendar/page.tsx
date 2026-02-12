@@ -42,7 +42,7 @@ export default function page() {
             <Euro />
             Prezzi
           </TabsTrigger>
-          <TabsTrigger value="calendar">
+          <TabsTrigger value="calendar" className="">
             <Calendar1 />
             Calendario
           </TabsTrigger>

@@ -100,6 +100,7 @@ export function HourTooltip({
         min={minimumValue}
         max={maximumValue}
         step={1}
+        aria-label="slider orario"
         value={[clampedValue]}
         onValueChange={handleSliderChange}
         onPointerDown={() => setIsSliding(true)}

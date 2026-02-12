@@ -26,6 +26,7 @@ function Slider({
   return (
     <SliderPrimitive.Root
       data-slot="slider"
+      aria-label={"slider"}
       defaultValue={defaultValue}
       value={value}
       min={min}
@@ -51,6 +52,8 @@ function Slider({
       </SliderPrimitive.Track>
       {Array.from({ length: _values.length }, (_, index) => (
         <SliderPrimitive.Thumb
+          aria-label="slider thumb"
+          name="slider thumb"
           data-slot="slider-thumb"
           key={index}
           className="border-primary ring-ring/50 block size-[25] shrink-0 rounded-full border bg-white shadow-sm transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"

@@ -181,9 +181,12 @@ export default function VehicleAndDimensionsStep({
             <FieldGroup>
               <div className="grid gap-4 md:grid-cols-3">
                 <Field data-invalid={!!errors.width}>
-                  <FieldLabel>Larghezza (m)</FieldLabel>
+                  <FieldLabel htmlFor="width">Larghezza (m)</FieldLabel>
                   <FieldContent>
                     <Input
+                      aria-label="Larghezza del posto"
+                      aria-required="true"
+                      id="width"
                       type="number"
                       min={selectedVehicle.dimension.width}
                       step={0.01}
@@ -197,9 +200,12 @@ export default function VehicleAndDimensionsStep({
                 </Field>
 
                 <Field data-invalid={!!errors.length}>
-                  <FieldLabel>Lunghezza (m)</FieldLabel>
+                  <FieldLabel htmlFor="length">Lunghezza (m)</FieldLabel>
                   <FieldContent>
                     <Input
+                      aria-label="Lunghezza del posto"
+                      aria-required="true"
+                      id="length"
                       type="number"
                       min={selectedVehicle.dimension.length}
                       step={0.01}
@@ -213,9 +219,12 @@ export default function VehicleAndDimensionsStep({
                 </Field>
 
                 <Field data-invalid={!!errors.height}>
-                  <FieldLabel>Altezza (m)</FieldLabel>
+                  <FieldLabel htmlFor="height">Altezza (m)</FieldLabel>
                   <FieldContent>
                     <Input
+                      aria-label="Altezza del posto"
+                      aria-required="true"
+                      id="height"
                       type="number"
                       min={selectedVehicle.dimension.height}
                       step={0.01}
