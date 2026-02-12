@@ -1,13 +1,14 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import Logo from "@/components/Logo"
-import { Car, Smartphone, ArrowRight } from "lucide-react"
+import { Smartphone, ArrowRight, Check } from "lucide-react"
 import Link from "next/link"
 import { useEffect } from "react"
 import { useUser } from "@/providers/user-provider"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
+import Image from "next/image"
 
 export function NotAHostContent() {
   const { signOut } = useUser()
@@ -32,35 +33,30 @@ export function NotAHostContent() {
 
         {/* Main Card */}
         <Card className="border-2">
-          <CardHeader className="text-center pb-2">
-            <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <Car className="w-8 h-8 text-primary" />
+          <CardHeader className="text-center pb-2 flex justify-center items-center">
+            <div className="rounded-full bg-primary/10 p-4">
+              <Image src={"/not-a-host.webp"} alt="Not a host" width={160} height={100} />
             </div>
-            <CardTitle className="text-2xl">Non sei ancora un Host</CardTitle>
-            <CardDescription className="text-base mt-2">
-              Questa piattaforma è riservata agli host di Parkito.
-              Per diventare un host e iniziare a guadagnare con il tuo parcheggio,
-              registrati dall&apos;app mobile.
-            </CardDescription>
+
           </CardHeader>
           <CardContent className="space-y-4 pt-4">
             {/* Benefits list */}
             <div className="space-y-3 text-sm text-muted-foreground">
               <div className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded-full bg-secondary/20 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-secondary text-xs">✓</span>
+                <div className="size-6 rounded-full bg-secondary flex items-center justify-center shrink-0 mt-0.5">
+                  <Check className="size-4" />
                 </div>
                 <span>Guadagna affittando il tuo parcheggio</span>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded-full bg-secondary/20 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-secondary text-xs">✓</span>
+                <div className="size-6 rounded-full bg-secondary flex items-center justify-center shrink-0 mt-0.5">
+                  <Check className="size-4" />
                 </div>
                 <span>Gestisci le prenotazioni in totale autonomia</span>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded-full bg-secondary/20 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-secondary text-xs">✓</span>
+                <div className="size-6 rounded-full bg-secondary flex items-center justify-center shrink-0 mt-0.5">
+                  <Check className="size-4" />
                 </div>
                 <span>Ricevi pagamenti sicuri direttamente sul tuo conto</span>
               </div>

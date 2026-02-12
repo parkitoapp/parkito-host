@@ -1,5 +1,6 @@
 import { SelectOption, TeamMember } from "@/types";
 import ContactCalendarClient from "@/components/ContactCalendarClient";
+import TitleHeader from "@/components/TitleHeader";
 
 export const teamMembers: Record<string, TeamMember> = {
   benedetta: {
@@ -46,6 +47,7 @@ export const selectOptions: SelectOption[] = [
 export default function page() {
   return (
     <div className="w-full max-h-screen mx-auto">
+      <TitleHeader title="Contattaci" description="Il nostro team è sempre disponibile per aiutarti." />
       <ContactCalendarClient teamMembers={teamMembers} selectOptions={selectOptions} />
     </div>
   )

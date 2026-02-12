@@ -25,6 +25,7 @@ import PerksStep from "@/components/PerkStep"
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert"
 import Loading from "@/app/loading"
 import { Separator } from "./ui/separator"
+import TitleHeader from "./TitleHeader"
 
 export const VEHICLE_OPTIONS: vehicleOptionsType[] = [
   {
@@ -105,7 +106,7 @@ function createParkingInfoStateFromParking(
     withBackendFields.vehicle_type_id ?? withBackendFields.vehicle_type
   const maxVehicleId: VehicleId =
     typeof vehicleTypeId === "number" &&
-    VALID_VEHICLE_IDS.includes(vehicleTypeId as VehicleId)
+      VALID_VEHICLE_IDS.includes(vehicleTypeId as VehicleId)
       ? (vehicleTypeId as VehicleId)
       : 4
 
@@ -296,12 +297,7 @@ function ParkingInfoPageInner({ initialParkingInfo }: ParkingInfoPageInnerProps)
       <div className="flex flex-1 flex-col gap-4 py-4 md:gap-6 md:py-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Informazioni parcheggio
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Riepilogo delle informazioni configurate per il tuo parcheggio.
-            </p>
+            <TitleHeader title="Informazioni parcheggio" description="Riepilogo delle informazioni configurate per il tuo parcheggio." />
           </div>
           <Button size="sm" variant="outline" className="gap-2" onClick={handleEnterEdit}>
             <Pencil className="h-4 w-4" />

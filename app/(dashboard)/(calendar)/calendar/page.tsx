@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar1, Euro } from "lucide-react";
 import PriceEditor from "@/components/PriceEditor";
+import TitleHeader from "@/components/TitleHeader";
 
 const legendItems = [
 
@@ -28,17 +29,12 @@ const legendItems = [
 
 export default function page() {
   return (
-    <div className="">
+    <div className="flex flex-1 flex-col min-h-[calc(100vh-4em)]">
       <div className="w-full flex flex-row justify-between items-center mb-6">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-5xl font-bold">Gestisci prezzi e disponibilità del tuo parcheggio</h1>
-          <p className="text-md text-muted-foreground">
-            Gestisci prezzi giornalieri e disponibilità del tuo parcheggio
-          </p>
-        </div>
-        <div className="flex flex-row gap-2">
-          <BookACall />
-        </div>
+        <TitleHeader title="Gestisci prezzi e disponibilità del tuo parcheggio" description="Gestisci prezzi giornalieri e disponibilità del tuo parcheggio" />
+
+        <BookACall />
+
       </div>
       <Tabs defaultValue="price">
         <TabsList className="w-full">

@@ -1,4 +1,5 @@
 import ServiceCard from "@/components/ServiceCard";
+import TitleHeader from "@/components/TitleHeader";
 import { servicesType } from "@/types";
 import Link from "next/link";
 
@@ -31,8 +32,7 @@ export default function page() {
   return (
     <div className="flex flex-col gap-2 min-h-[calc(100dvh-2em)] items-center justify-center mb-4">
       <div className=" w-full flex flex-col gap-2 items-start justify-start mb-8">
-        <h1 className="text-2xl font-bold">Servizi Aggiuntivi</h1>
-        <p className="text-md text-muted-foreground">Servizi aggiuntivi per massimizzare le prenotazioni del tuo parcheggio</p>
+        <TitleHeader title="Servizi Aggiuntivi" description="Servizi aggiuntivi per massimizzare le prenotazioni del tuo parcheggio" />
       </div>
       <div className="flex flex-col gap-6">
         {services.map((service) => (
