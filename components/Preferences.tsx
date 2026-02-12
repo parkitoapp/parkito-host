@@ -88,7 +88,7 @@ export default function Preferences({ user, host }: { user: DriverData, host: Ho
               <ChevronRight className="size-4 text-muted-foreground group-hover:text-primary " />
             </li>
             <li className="flex flex-row items-center gap-2 w-full justify-between ">
-              <Link target="_blank" className="hover:text-primary" href="">Reimposta password</Link>
+              <Link target="_blank" className="hover:text-primary" href="/change-pwd">Reimposta password</Link>
               <ChevronRight className="size-4 text-muted-foreground group-hover:text-primary " />
             </li>
           </ul>

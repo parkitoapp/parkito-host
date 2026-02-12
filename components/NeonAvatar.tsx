@@ -18,6 +18,29 @@ type NeonAvatarProps = {
   fallbackClassName?: string
 }
 
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_PROJECT_URL
+
+function resolveAvatarSrc(src?: string | null) {
+  if (!src) return ""
+
+  // If it's already an absolute URL or data URI, use as-is
+  if (
+    src.startsWith("http://") ||
+    src.startsWith("https://") ||
+    src.startsWith("data:")
+  ) {
+    return src
+  }
+
+  // Treat as path inside public "uploads" bucket in Supabase Storage
+  if (SUPABASE_URL) {
+    return `${SUPABASE_URL}/storage/v1/object/public/uploads/${src}`
+  }
+
+  // Fallback: return original string
+  return src
+}
+
 export function NeonAvatar({
   seed,
   initials,
@@ -28,12 +51,13 @@ export function NeonAvatar({
   fallbackClassName,
 }: NeonAvatarProps) {
   const neon = seed ? getNeonAvatarClasses(seed) : undefined
+  const resolvedSrc = resolveAvatarSrc(src)
 
   return (
     <div className="flex items-center justify-center">
       <Avatar className={cn("size-8 border", neon?.border, className)}>
         <AvatarImage
-          src={src || ""}
+          src={resolvedSrc}
           alt={alt ?? initials}
           className={imageClassName}
         />

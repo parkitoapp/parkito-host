@@ -184,3 +184,11 @@ export type SelectOption = {
   label: string;
   memberId: string;
 };
+
+export type servicesType = {
+  id: string;
+  src: string;
+  title: string;
+  description: string;
+  url: string;
+};

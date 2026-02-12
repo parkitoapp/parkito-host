@@ -53,16 +53,16 @@ export function LoginForm({
   const [checkingAuth, setCheckingAuth] = useState<boolean>(true);
   const disabled = (email.length === 0 || emailError) || (password.length === 0) || loading;
 
-  // Check if returning from OAuth callback
+  // Check if returning from OAuth callback / existing session
   useEffect(() => {
     const checkAuthStatus = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        // User is authenticated, wait for redirect (handled by UserProvider)
-        return;
+      try {
+        await supabase.auth.getSession();
+      } finally {
+        // Always stop the local "verifica in corso" spinner;
+        // global redirects are handled by UserProvider.
+        setCheckingAuth(false);
       }
-      // No session, show the login form
-      setCheckingAuth(false);
     };
     checkAuthStatus();
   }, [supabase.auth]);

@@ -23,10 +23,14 @@ import {
 } from "./ui/field"
 import ImmutableFieldTooltip from "./ImmutableToolTip"
 import { DriverData, HostData } from "@/types"
+import { toast } from "sonner"
 
 export default function ProfileSection({ user, host }: { user: DriverData, host: HostData }) {
   const [mode, setMode] = useState<"view" | "edit">("view")
   const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const [phone, setPhone] = useState(user.phone ?? "")
+  const [iban, setIban] = useState(host?.iban ?? "")
+  const [saving, setSaving] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
 
@@ -40,12 +44,39 @@ export default function ProfileSection({ user, host }: { user: DriverData, host:
       .map((n) => n?.[0])
       .join("") || "PK"
 
-  console.log("User:", user)
-  console.log("Host:", host)
+  async function handleSave() {
+    try {
+      setSaving(true)
+
+      const body = {
+        phone: phone || null,
+        // Only send IBAN if it actually changed; otherwise let API skip edge call
+        iban: iban !== (host?.iban ?? "") ? (iban || null) : null,
+      }
+
+      const res = await fetch("/api/profile/update", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      })
+
+      if (!res.ok) {
+        toast.error("Failed to update profile: " + (await res.text()))
+        return
+      }
+
+      setMode("view")
+      toast.success("Profile updated successfully")
+    } finally {
+      setSaving(false)
+    }
+  }
 
   if (mode === "view") {
     return (
-      <Card className="flex flex-col items-center justify-between w-full max-w-3xl mx-auto">
+      <Card className="flex flex-col items-center justify-between w-full max-w-5xl mx-auto">
 
         <div className="flex flex-row items-center gap-4 w-full px-4 py-3">
           <CardHeader className="flex flex-row items-center justify-center min-w-[96px]">
@@ -116,7 +147,6 @@ export default function ProfileSection({ user, host }: { user: DriverData, host:
                 if (!file) return
                 const url = URL.createObjectURL(file)
                 setPreviewImage(url)
-                // TODO: connect to edge function to upload & persist avatar
               }}
             />
           </div>
@@ -158,7 +188,8 @@ export default function ProfileSection({ user, host }: { user: DriverData, host:
                 <FieldLabel>Telefono</FieldLabel>
                 <FieldContent>
                   <Input
-                    defaultValue={user.phone ?? ""}
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
                     placeholder="+39 333 123 4567"
                   />
                 </FieldContent>
@@ -188,7 +219,8 @@ export default function ProfileSection({ user, host }: { user: DriverData, host:
               <FieldLabel>IBAN</FieldLabel>
               <FieldContent>
                 <Input
-                  defaultValue={host?.iban ?? ""}
+                  value={iban}
+                  onChange={(e) => setIban(e.target.value)}
                   placeholder="IT00 A000 0000 0000 0000 0000 000"
                 />
               </FieldContent>
@@ -205,7 +237,7 @@ export default function ProfileSection({ user, host }: { user: DriverData, host:
           >
             Annulla
           </Button>
-          <Button size="sm" disabled>
+          <Button size="sm" onClick={handleSave} disabled={saving}>
             Salva
           </Button>
         </div>
