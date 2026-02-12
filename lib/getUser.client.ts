@@ -62,7 +62,16 @@ export async function fetchParkingByHostId(hostId: string) {
     .eq("host_id", hostId);
 
   if (error) {
-    console.error("Error fetching parkings:", error.message);
+    // React Query and other consumers may cancel in-flight requests using
+    // an AbortSignal. In that case we don't want to treat it as a real
+    // application error or spam the console.
+    const anyError = error as unknown as { name?: string; message?: string };
+    if (anyError?.name === "AbortError") {
+      console.debug("Parkings fetch aborted (likely due to component unmount or query cancellation).");
+      return [];
+    }
+
+    console.error("Error fetching parkings:", anyError?.message ?? error);
     return [];
   }
 

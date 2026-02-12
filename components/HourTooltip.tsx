@@ -122,5 +122,3 @@ export function HourTooltip({
     </div>
   );
 }
-
-const burgundyPrimary = "oklch(0.38 0.1523 18.6219)";

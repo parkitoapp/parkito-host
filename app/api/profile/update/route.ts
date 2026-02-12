@@ -11,10 +11,8 @@ type Body = {
 
 export async function POST(req: Request) {
   try {
-    const [supabaseAdmin, supabase] = await Promise.all([
-      (async () => getSupabaseAdmin())(),
-      createClient(),
-    ])
+    const supabaseAdmin = getSupabaseAdmin()
+    const supabase = await createClient()
 
     const {
       data: { user },
@@ -62,13 +60,22 @@ export async function POST(req: Request) {
 
       const fnUrl = `${supabaseUrl}/functions/v1/create-host`
 
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        apikey: anonKey,
+      }
+
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`
+      }
+
       const edgeRes = await fetch(fnUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: anonKey,
-          Authorization: `Bearer ${anonKey}`,
-        },
+        headers,
         body: JSON.stringify({
           user_id: user.id,
           iban,
