@@ -10,7 +10,7 @@ export default function ServiceCard({ service }: { service: servicesType }) {
   return (
     <Card className='w-full max-w-5xl mx-auto flex flex-row items-center justify-center'>
       <CardHeader className='w-1/3'>
-        <Image src={service.src} alt={service.title} width={150} height={150} className='rounded-md mx-auto' loading='lazy' objectFit='contain' />
+        <Image src={service.src} alt={service.title} width={150} height={150} className='rounded-md mx-auto size-48' loading='lazy' objectFit='contain' />
       </CardHeader>
       <CardContent className='w-2/3 items-start justify-start flex flex-col gap-2'>
         <div className='flex flex-row items-center justify-center gap-6'>

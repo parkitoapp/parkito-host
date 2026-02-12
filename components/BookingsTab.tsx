@@ -109,12 +109,12 @@ export default function BookingsTab() {
   return (
     <div className="w-full flex-1 bg-background">
       <div className="mx-auto flex h-full max-w-[1440px] flex-1 flex-col px-6 py-8 space-y-6">
-        <header className="space-y-1">
+        <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">Prenotazioni</h1>
           <p className="text-sm text-muted-foreground">
             Monitora e rivedi tutte le prenotazioni passate e future per questo parcheggio.
           </p>
-        </header>
+        </div>
 
         <Tabs defaultValue="upcoming-bookings" className="flex-1 flex flex-col">
           <TabsList className="w-full justify-start">

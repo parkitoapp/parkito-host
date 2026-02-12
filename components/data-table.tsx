@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { IconChevronLeft, IconChevronRight, IconFilter } from "@tabler/icons-react"
+import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react"
 import { ArrowDown, ArrowUp } from "lucide-react"
 
 interface DataTableProps<TData, TValue> {
@@ -84,7 +84,7 @@ export function DataTable<TData, TValue>({
                       key={header.id}
                       className={cn(
                         canSort && "cursor-pointer select-none",
-                        "align-middle py-4 text-primary"
+                        "align-middle py-4 text-foreground"
                       )}
                       onClick={
                         canSort ? header.column.getToggleSortingHandler() : undefined
@@ -98,7 +98,7 @@ export function DataTable<TData, TValue>({
                             header.getContext()
                           )}
                         {canSort && (
-                          <span className="text-muted-foreground shrink-0">
+                          <span className="text-foreground shrink-0">
                             {sorted === "asc" ? <ArrowUp className="size-4 text-foreground" /> : <ArrowDown className="size-4 text-foreground" />}
                           </span>
                         )}
