@@ -1,7 +1,12 @@
 import { Suspense } from "react";
+import dynamic from "next/dynamic";
 import { SectionCards } from "@/components/SectionCards";
 import { DashboardUpcomingBookings } from "@/components/dashboard-upcoming-bookings";
-import { ChartAreaInteractive } from "@/components/ChartArea";
+
+const ChartAreaInteractive = dynamic(
+  () => import("@/components/ChartArea").then(m => m.ChartAreaInteractive),
+  { ssr: false, loading: () => <div className="h-[350px] w-full animate-pulse rounded-xl bg-muted" /> }
+);
 
 export default function Home() {
 

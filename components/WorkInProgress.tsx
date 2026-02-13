@@ -1,7 +1,11 @@
 "use client"
 
+import dynamic from "next/dynamic";
 
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+const DotLottieReact = dynamic(
+  () => import('@lottiefiles/dotlottie-react').then(m => m.DotLottieReact),
+  { ssr: false }
+);
 
 export default function WorkInProgress({ name }: { name: string }) {
   return (

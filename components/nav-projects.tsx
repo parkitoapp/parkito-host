@@ -30,7 +30,7 @@ export function NavProjects({
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>{title}</SidebarGroupLabel>
+      <SidebarGroupLabel className="text-muted dark:text-muted-foreground">{title}</SidebarGroupLabel>
       <SidebarMenu>
         {projects.map((item) => (
 
@@ -39,7 +39,7 @@ export function NavProjects({
               asChild
               isActive={pathname === item.url}
             >
-              <Link href={item.url}>
+              <Link href={item.url} >
                 <item.icon />
                 <span>{item.name}</span>
               </Link>

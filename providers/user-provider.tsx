@@ -5,7 +5,7 @@ import { User } from "@supabase/supabase-js"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 import { useRouter, usePathname } from "next/navigation"
 import { useQueryClient } from "@tanstack/react-query"
-import { getDriverData, getHostData } from "@/lib/getUser.client"
+import { getDriverData, getHostData, fetchParkingByHostId } from "@/lib/getUser.client"
 import type { DriverData, HostData } from "@/types"
 import type { Parking } from "@/types"
 
@@ -155,17 +155,30 @@ export function UserProvider({ children, initialUser, initialDriver, initialHost
             if (session?.user?.id) {
               const { host: hostData } = await fetchUserData(session.user.id)
 
-              // Check if user is a host - if not, redirect to not-a-host page
               if (!hostData) {
-                // Sign out the user since they're not authorized
                 await supabase.auth.signOut()
                 window.location.href = "/not-a-host"
                 return
               }
 
-              // User is a host, redirect to dashboard
-              // TODO: Temporary redirect to /calendar until home page features are implemented
-              router.push("/")
+              // Block only when the host has zero parkings or exactly one
+              // incomplete parking. Hosts with 2+ parkings can always proceed.
+              const parkings = await fetchParkingByHostId(hostData.id)
+              const needsSetup =
+                parkings.length === 0 ||
+                (parkings.length === 1 &&
+                  !(
+                    parkings[0].info_parcheggio_completed &&
+                    parkings[0].prezzi_disponibilita_completed &&
+                    parkings[0].descrizione_accesso_completed &&
+                    parkings[0].galleria_foto_completed
+                  ))
+
+              if (needsSetup) {
+                router.push("/complete-setup")
+              } else {
+                router.push("/")
+              }
             }
             break
 

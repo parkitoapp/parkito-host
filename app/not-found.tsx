@@ -1,7 +1,13 @@
 'use client'
 import { Button } from "@/components/ui/button";
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import dynamic from "next/dynamic";
 import Link from "next/link";
+
+const DotLottieReact = dynamic(
+  () => import('@lottiefiles/dotlottie-react').then(m => m.DotLottieReact),
+  { ssr: false }
+);
+
 export default function notFound() {
   return (
     <div className="min-h-screen w-full bg-background flex flex-col md:flex-row items-center justify-center">

@@ -88,9 +88,6 @@ export default function TimeSlotEditor({
               className="pl-7"
             />
           </div>
-          <p className="text-sm text-muted-foreground">
-            Prezzo suggerito in base alla zona: € 2.50
-          </p>
         </div>
 
         {/* Time Slots */}

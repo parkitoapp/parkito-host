@@ -19,8 +19,9 @@ function getClientIp(request: NextRequest): string {
   if (xff) {
     return xff.split(",")[0].trim()
   }
-  // Fallback to other common IP headers
+  // Fallback to other common IP headers (Netlify sets x-nf-client-ip)
   const realIp =
+    request.headers.get("x-nf-client-ip") ??
     request.headers.get("x-real-ip") ??
     request.headers.get("x-client-ip") ??
     request.headers.get("cf-connecting-ip")

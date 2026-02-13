@@ -20,7 +20,6 @@ import {
   BreadcrumbLink,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
-
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false)
   const { driver, host, loading } = useUser()
@@ -106,7 +105,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               </Breadcrumb>
             </div>
           </header>
-          <div className="px-2">{children}</div>
+          <div className="px-6">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </SelectedParkingProvider>

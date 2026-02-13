@@ -12,7 +12,7 @@ import { useMemo, useState, useCallback } from "react";
 import type { DayState } from "@/types";
 import { it } from "react-day-picker/locale";
 import { Spinner } from "@/components/ui/spinner";
-import { AvailabilityEditor } from "@/components/AvailabilityEditor";
+import { AvailabilityEditor } from "@/components/availability-editor";
 import {
   getPending,
   hasPending,

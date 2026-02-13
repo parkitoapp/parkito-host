@@ -62,33 +62,49 @@ export async function updateSession(request: NextRequest) {
 
   // For authenticated users, check if they're a host
   if (user && !isAuthRoute && !isNotAHostRoute) {
-    // Check if user exists in pkt_host table
     const { data: host, error } = await supabase
       .from("pkt_host")
       .select("id")
       .eq("driver_id", user.sub)
       .single();
 
-    // If not a host, redirect to not-a-host page
     if (error || !host) {
       const url = request.nextUrl.clone();
       url.pathname = "/not-a-host";
       return NextResponse.redirect(url);
     }
-  }
 
-  // Redirect authenticated hosts away from login page to dashboard
-  if (user && pathname === "/login") {
-    // Check if they're a host first
-    const { data: host } = await supabase
-      .from("pkt_host")
-      .select("id")
-      .eq("driver_id", user.sub)
-      .single();
+    // Block access only when the host has zero parkings or exactly one
+    // incomplete parking. Hosts with 2+ parkings can always access the dashboard.
+    const isCompleteSetupRoute = pathname === "/complete-setup";
+    if (!isCompleteSetupRoute) {
+      const { data: parkings } = await supabase
+        .from("pkt_parking")
+        .select("id, info_parcheggio_completed, prezzi_disponibilita_completed, descrizione_accesso_completed, galleria_foto_completed")
+        .eq("host_id", host.id);
 
-    if (host) {
+      const parkingList = Array.isArray(parkings) ? parkings : [];
+      const needsSetup =
+        parkingList.length === 0 ||
+        (parkingList.length === 1 &&
+          !(
+            parkingList[0].info_parcheggio_completed &&
+            parkingList[0].prezzi_disponibilita_completed &&
+            parkingList[0].descrizione_accesso_completed &&
+            parkingList[0].galleria_foto_completed
+          ));
+
+      if (needsSetup) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/complete-setup";
+        return NextResponse.redirect(url);
+      }
+    }
+
+    // Redirect from login to dashboard (or complete-setup if already handled above)
+    if (pathname === "/login") {
       const url = request.nextUrl.clone();
-      url.pathname = "/calendar"; //to be changed as soon as analitycs are available
+      url.pathname = "/";
       return NextResponse.redirect(url);
     }
   }

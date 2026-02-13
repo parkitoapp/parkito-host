@@ -86,6 +86,7 @@ export function GalleryFieldCard({
                   src={url}
                   alt={label}
                   fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
                 />
               )}

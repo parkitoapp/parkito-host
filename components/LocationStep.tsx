@@ -19,9 +19,14 @@ import {
 } from "@/components/ui/field"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
+import dynamic from "next/dynamic"
 import { GooglePlacesInput } from "@/components/GooglePlacesInput"
-import Map from "@/components/maps/Map"
 import ParkingMarker from "@/components/maps/ParkingMarker"
+
+const Map = dynamic(() => import("@/components/maps/Map"), {
+  ssr: false,
+  loading: () => <div className="h-full w-full animate-pulse rounded-lg bg-muted" />,
+})
 
 export interface LocationStepProps {
   draft: ParkingInfoState

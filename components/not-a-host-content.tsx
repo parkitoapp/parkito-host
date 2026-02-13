@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Logo from "@/components/Logo"
 import { Smartphone, ArrowRight, Check } from "lucide-react"
 import Link from "next/link"
@@ -33,11 +33,14 @@ export function NotAHostContent() {
 
         {/* Main Card */}
         <Card className="border-2">
-          <CardHeader className="text-center pb-2 flex justify-center items-center">
+          <CardHeader className="text-center pb-2 flex flex-col justify-center items-center">
             <div className="rounded-full bg-primary/10 p-4">
               <Image src={"/not-a-host.webp"} alt="Not a host" width={160} height={100} />
             </div>
-
+            <CardTitle>Ops! Sembra che tu non sia un host</CardTitle>
+            <CardDescription>
+              Sei un cliente e vuoi affittare un parcheggio?
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 pt-4">
             {/* Benefits list */}

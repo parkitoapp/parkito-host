@@ -20,10 +20,15 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
+import dynamic from "next/dynamic"
 import { PERKS } from "@/constants/perks"
 import PerkCard from "./PerkCard"
-import Map from "./maps/Map"
 import ParkingMarker from "./maps/ParkingMarker"
+
+const Map = dynamic(() => import("./maps/Map"), {
+  ssr: false,
+  loading: () => <div className="h-full w-full animate-pulse rounded-lg bg-muted" />,
+})
 
 export interface ParkingInfoViewProps {
   info: ParkingInfoState
@@ -128,6 +133,7 @@ export default function ParkingInfoView({
                     width={220}
                     height={220}
                     className="rounded-md object-contain"
+                    style={{ width: "auto", height: "auto" }}
                   />
                   <div className="flex flex-col gap-1 items-center justify-center w-full">
                     <span className="text-xl font-semibold">

@@ -144,13 +144,13 @@ export function getStatusBadge(status?: string | null): {
       return {
         variant: "destructive",
         className:
-          "text-red-500 dark:text-red-400 border-red-500 dark:border-red-400 bg-red-300 dark:bg-red-900/30",
+          "text-red-900 dark:text-red-400 border-red-500 dark:border-red-400 bg-red-100 dark:bg-red-900/30",
       };
     case "confirmed":
       return {
         variant: "default",
         className:
-          "text-green-600 dark:text-green-400 border-green-600 dark:border-green-400 bg-green-100 dark:bg-green-900/30",
+          "text-green-900 dark:text-green-400 border-green-600 dark:border-green-400 bg-green-100 dark:bg-green-900/30",
       };
     default:
       return { variant: "secondary", className: "" };

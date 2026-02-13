@@ -59,7 +59,7 @@ export function NeonAvatar({
         <AvatarImage
           src={resolvedSrc}
           alt={alt ?? initials}
-          className={imageClassName}
+          className={cn("object-cover", imageClassName)}
         />
         <AvatarFallback className={cn(neon?.avatar, fallbackClassName)}>
           {initials}

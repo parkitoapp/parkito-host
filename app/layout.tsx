@@ -8,6 +8,7 @@ import { PaletteProvider } from "@/providers/palette-provider";
 import { UserProvider } from "@/providers/user-provider";
 import { QueryProvider } from "@/providers/query-provider";
 import { Toaster } from "sonner";
+import { MobileGate } from "@/components/mobile-gate";
 import { createClient } from "@/lib/supabase/server";
 import { getParkingsByHostId } from "@/lib/parkings.server";
 import type { DriverData, HostData, Parking } from "@/types";
@@ -19,8 +20,9 @@ export const metadata: Metadata = {
 const interTight = Inter_Tight(
   {
     subsets: ["latin"],
-    weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
-    variable: "--font-inter-tight"
+    weight: ["400", "500", "600", "700"],
+    variable: "--font-inter-tight",
+    display: "swap",
   }
 );
 
@@ -55,7 +57,7 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
         {/* Apply saved palette class ASAP to avoid flash of default palette */}
         <Script id="parkito-init-palette" strategy="beforeInteractive">
@@ -85,9 +87,11 @@ export default async function RootLayout({
                 initialHost={initialHost}
                 initialParkings={initialParkings}
               >
-                <main id="main-content">
-                  {children}
-                </main>
+                <MobileGate>
+                  <main id="main-content">
+                    {children}
+                  </main>
+                </MobileGate>
                 <Toaster richColors position="top-center" expand={false} />
               </UserProvider>
             </QueryProvider>
